@@ -6,7 +6,7 @@ default: all
 
 all: getlib makelib xropbin
 
-withstatic: getlib makelibwithstatic xdisasm
+withstatic: getlib makelibwithstatic xropbin
 
 getlib:
 		test -d libxdisasm || git clone git@github.com:acama/libxdisasm.git

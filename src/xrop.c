@@ -53,25 +53,29 @@ int is_valid_instr(insn_t * i, int arch){
 
 // insn_t *
 // Is the instruction an unconditional branch
-int is_branch(insn_t * i){
+int is_branch(insn_t * i, int arch){
 
-    if(strstr(i->decoded_instrs, "b\t"))
-        return 1;
+    if(arch == ARCH_arm){
+        if(strstr(i->decoded_instrs, "b\t"))
+            return 1;
 
-    if(strstr(i->decoded_instrs, "b."))
-        return 1;
-    
-    if(strstr(i->decoded_instrs, "bl"))
-        return 1;
-    
-    if(strstr(i->decoded_instrs, "bx"))
-        return 1;
-    
-    if(strstr(i->decoded_instrs, "blx"))
-        return 1;
-    
-    if(strstr(i->decoded_instrs, "jmp"))
-        return 1;
+        if(strstr(i->decoded_instrs, "b."))
+            return 1;
+
+        if(strstr(i->decoded_instrs, "bl"))
+            return 1;
+
+        if(strstr(i->decoded_instrs, "bx"))
+            return 1;
+
+        if(strstr(i->decoded_instrs, "blx"))
+            return 1;
+    }
+
+    if(arch == ARCH_x86){
+        if(strstr(i->decoded_instrs, "jmp"))
+            return 1;
+    }
 
     return 0;
 }
@@ -109,7 +113,7 @@ void get_children_x86(x86_node_t * currnode, char * begptr, char * rawbuf, size_
         if(is_x86_end(nrawbuf, bits)) break;
         
         curr = disassemble_one(rvma, nrawbuf, bufsize + i, ARCH_x86, bits, 0);
-        if(is_branch(curr)) break;
+        if(is_branch(curr, ARCH_x86)) break;
         if(is_valid_instr(curr, ARCH_x86) && (curr->instr_size == i)){
             x86_node_t * tmpn = malloc(sizeof(x86_node_t));
             if(!tmpn){
@@ -189,7 +193,7 @@ void r_print_gadgets_trie(x86_node_t * n, insn_t * path[], size_t depth, int pat
 
     path[pathlen] = n->insn;
  
-    if(depth < 0){
+    if((int) depth < 0){
         return;
     }
     
@@ -375,7 +379,7 @@ void get_children_thumb(thumb_node_t * currnode, char * begptr, char * rawbuf, s
     if(is_thumb16_end((uint16_t *)nrawbuf, bits, endian)) return;
 
     curr = disassemble_one(rvma, nrawbuf, bufsize + 2, ARCH_arm, 16, 0);
-    if(is_valid_instr(curr, ARCH_arm) && (curr->instr_size == 2) && !is_branch(curr)){
+    if(is_valid_instr(curr, ARCH_arm) && (curr->instr_size == 2) && !is_branch(curr, ARCH_arm)){
         leftn = malloc(sizeof(thumb_node_t));
         if(!leftn){
             perror("malloc");
@@ -394,7 +398,7 @@ void get_children_thumb(thumb_node_t * currnode, char * begptr, char * rawbuf, s
     //if(is_thumb32_end((uint32_t *)nrawbuf, bits, endian)) return; // TODO: implement this
 
     curr = disassemble_one(rvma, nrawbuf, bufsize + 4, ARCH_arm, 16, 0);
-    if(is_valid_instr(curr, ARCH_arm) && (curr->instr_size == 4) && !is_branch(curr)){
+    if(is_valid_instr(curr, ARCH_arm) && (curr->instr_size == 4) && !is_branch(curr, ARCH_arm)){
         rightn = malloc(sizeof(thumb_node_t));
         if(!rightn){
             perror("malloc");
@@ -430,7 +434,9 @@ gadget_list * generate_arm(unsigned int vma, char * rawbuf, size_t size, int bit
                 unsigned int nvma = (vma + i * 4) - (j * 4);
                 if(nvma < vma) break;
                 it = disassemble_one(nvma, iptr, ARM_INSTR_SIZE, ARCH_arm, bits, endian);
-                if(!is_valid_instr(it, ARCH_arm) || is_arm_end((uint32_t *)iptr, bits, endian) || is_branch(it)) break;
+                if(!is_valid_instr(it, ARCH_arm) 
+                        || is_arm_end((uint32_t *)iptr, bits, endian) 
+                        || is_branch(it, ARCH_arm)) break;
                 prepend_instr(it, &gadget);
             }
             print_gadgets_list(&gadget);
