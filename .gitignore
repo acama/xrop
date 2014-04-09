@@ -1,0 +1,12 @@
+# C
+*.so
+*.o
+
+# Build
+build
+
+# Notes
+notes
+
+# gdb
+.gdb_history
