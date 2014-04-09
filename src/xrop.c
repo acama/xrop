@@ -354,7 +354,6 @@ int is_thumb16_end(uint16_t * rawbuf, int bits, int endian){
     ins = rawbuf[0];
     acc = (((ins >> 8 ) & 0xff) == 0xbd); // Load Multiple instructions that manipulate PC
     acc |= (((ins >> 8 ) & 0xff) == 0x47); // Branch and Exchange instructions
-    acc |= (((ins >> 8) & 0xff) == 0x8e); // Pop
     acc |= (((ins >> 24) & 0xff) == 0xef); // SVC
     return acc;
 }
