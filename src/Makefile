@@ -9,7 +9,7 @@ all: getlib makelib xropbin
 withstatic: getlib makelibwithstatic xropbin
 
 getlib:
-		test -d libxdisasm || git clone git@github.com:acama/libxdisasm.git
+	test -d libxdisasm || git clone https://github.com/acama/libxdisasm
 
 makelib:
 	cd libxdisasm && $(MAKE)
