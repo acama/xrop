@@ -1,6 +1,7 @@
 CC=gcc
 APP=../build/xropbin
-CFLAGS= -Wall -Llibxdisasm/build/lib/ -lxdisasm -lbfd -ggdb
+CFLAGS= -Wall -ggdb
+LDFLAGS= -Llibxdisasm/build/lib/ -lbfd -lxdisasm
 
 default: all
 
@@ -20,7 +21,7 @@ makelibwithstatic:
 	cp libxdisasm/build/lib/libxdisasm.so ../build/lib/libxdisasm.so
 
 xropbin: main.o xrop.o
-	$(CC) $(CFLAGS) -o ${APP} main.o xrop.o
+	$(CC) $(CFLAGS) xrop.o main.o -o ${APP} $(LDFLAGS)
 
 clean:
 	rm -rf *.o ${APP}
