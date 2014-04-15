@@ -18,6 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  
 */
+#ifndef XROP_H
+#define XROP_H
 
 #include <stdlib.h>
 #include "../src/libxdisasm/include/xdisasm.h"
@@ -57,3 +59,5 @@ typedef struct thumb_node_t{
 }thumb_node_t;
 
 gadget_list * gadget_search(unsigned int vma, char * rawbuf, size_t size, int arch, int bits, int endian, size_t depth);
+
+#endif
