@@ -58,6 +58,6 @@ typedef struct thumb_node_t{
     struct thumb_node_t * right;    // instruction of size 4
 }thumb_node_t;
 
-gadget_list * gadget_search(unsigned int vma, char * rawbuf, size_t size, int arch, int bits, int endian, size_t depth);
+gadget_list * gadget_search(unsigned long long vma, char * rawbuf, size_t size, int arch, int bits, int endian, size_t depth);
 
 #endif

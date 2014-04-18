@@ -92,14 +92,14 @@ void print_gadget(insn_t * ins, int type, int isthumb){
 
     if(type == END_OUTPUT || type == SPECIAL_OUTPUT){
         if(isthumb)
-            printf("\e[34;1m> 1 + 0x%-18x\e[m", (unsigned int)ins->vma);
+            printf("\e[34;1m> 1 + %-18p\e[m", (void *)ins->vma);
         else 
-            printf("\e[34;1m> 0x%-22x\e[m", (unsigned int)ins->vma);
+            printf("\e[34;1m> %-22p\e[m", (void *)ins->vma);
     }else{
         if(isthumb)
-            printf("\e[34m1 + 0x%-20x\e[m", (unsigned int)ins->vma);
+            printf("\e[34m1 + %-20p\e[m", (void *)ins->vma);
         else 
-            printf("\e[34m0x%-24x\e[m", (unsigned int)ins->vma);
+            printf("\e[34m%-24p\e[m", (void *)ins->vma);
     }
 
     // remove uninteresting comments inserted by disassembler

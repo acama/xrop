@@ -44,10 +44,10 @@ int is_x86_end(char * rawbuf, int bits){
 
 // x86_node_t *, char *, char *, size_t, size_t, size_t, int, size_t
 // Generate all the gadgets connected to the x86 node
-void get_children_x86(x86_node_t * currnode, char * begptr, char * rawbuf, size_t lowervma, size_t bufsize, int bits, size_t depth){
+void get_children_x86(x86_node_t * currnode, char * begptr, char * rawbuf, unsigned long long lowervma, size_t bufsize, int bits, size_t depth){
     int i = 0;
     insn_t * it = NULL, * curr = NULL;
-    unsigned int rvma = 0;
+    unsigned long long rvma = 0;
     it = currnode->insn;
 
     for(i = 1; i < (X86MAX_INSTR_SIZE) && depth > 0; i++){
@@ -109,12 +109,12 @@ void print_gadgets_trie(x86_node_t * n, size_t depth){
 
 // unsigned int, char *, size_t, int, size_t
 // Generate the x86 gadgets in the given buffer
-gadget_list * generate_x86(unsigned int vma, char * rawbuf, size_t size, int bits, size_t depth){
+gadget_list * generate_x86(unsigned long long vma, char * rawbuf, size_t size, int bits, size_t depth){
     insn_t * it = NULL;
-    int i = 0;
-    unsigned int rvma = 0;
+    unsigned long long  i = 0;
+    unsigned long long rvma = 0;
     x86_node_t * retrootn = NULL;
-
+    
     // Find all ret instructions
     for(; i < size; i++){
         if(is_x86_end((rawbuf + i), bits)){

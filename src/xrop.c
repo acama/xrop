@@ -28,17 +28,17 @@
 #include <stdint.h>
 
 
-gadget_list * generate_powerpc(unsigned int vma, char * rawbuf, size_t size, int bits, int endian, size_t depth){
+gadget_list * generate_powerpc(unsigned long long vma, char * rawbuf, size_t size, int bits, int endian, size_t depth){
     return NULL;
 }
 
-gadget_list * generate_mips(unsigned int vma, char * rawbuf, size_t size, int bits, int endian, size_t depth){
+gadget_list * generate_mips(unsigned long long vma, char * rawbuf, size_t size, int bits, int endian, size_t depth){
     return NULL;
 }
 
 // unsigned int, char *, size_t, int, int, int, size_t
 // Search for gadgets in given buffer
-gadget_list * gadget_search(unsigned int vma, char * rawbuf, size_t size, int arch, int bits, int endian, size_t depth){
+gadget_list * gadget_search(unsigned long long vma, char * rawbuf, size_t size, int arch, int bits, int endian, size_t depth){
     gadget_list * l = NULL;
 
     if(arch == ARCH_x86){
@@ -53,4 +53,3 @@ gadget_list * gadget_search(unsigned int vma, char * rawbuf, size_t size, int ar
 
     return l;
 }
-

@@ -26,6 +26,6 @@
 
 // unsigned int, char *, size_t, int, size_t
 // Generate the x86 gadgets in the given buffer
-gadget_list * generate_x86(unsigned int vma, char * rawbuf, size_t size, int bits, size_t depth);
+gadget_list * generate_x86(unsigned long long vma, char * rawbuf, size_t size, int bits, size_t depth);
 
 #endif

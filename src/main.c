@@ -73,7 +73,7 @@ void handle_section(bfd * bfdh, asection * section, int arch, unsigned long mach
         fprintf(stderr, "%s: Couldn't read section data\n", XNAME);
         exit(-1);
     }
-
+    
     gadget_search(bfd_section_vma(bfdh, section), rawbytes, size, arch, bits, endian, depth);
     free(rawbytes);
 }
@@ -144,7 +144,7 @@ int handle_execable(char * infile, size_t depth){
 
 // char *, size_t, int, int, int, unsigned int, size_t
 // Open given file and handle as raw binary
-int handle_raw(char * infile, size_t hdrlen, int arch, int bits, int endian, unsigned int vma, size_t depth){
+int handle_raw(char * infile, size_t hdrlen, int arch, int bits, int endian, unsigned long long vma, size_t depth){
     FILE * fp = NULL;
     size_t datalen = 0;
     char * data = NULL;

@@ -138,7 +138,7 @@ int is_thumb16_end(uint16_t * rawbuf, int bits, int endian){
 
 // thumb_node_t *, char *, char *, size_t, size_t, size_t, int, size_t, int
 // Generate all the gadgets connected to the Thumb node
-void get_children_thumb(thumb_node_t * currnode, char * begptr, char * rawbuf, size_t lowervma, size_t bufsize, int bits, size_t depth, int endian){
+void get_children_thumb(thumb_node_t * currnode, char * begptr, char * rawbuf, unsigned long long lowervma, size_t bufsize, int bits, size_t depth, int endian){
     insn_t * it = NULL, * curr = NULL;
     unsigned int rvma = 0;
     char * nrawbuf = NULL;
@@ -189,7 +189,7 @@ void get_children_thumb(thumb_node_t * currnode, char * begptr, char * rawbuf, s
 
 // unsigned int, char *, size_t, int, int, size_t
 // Generate all the ARM gadgets
-gadget_list * generate_arm(unsigned int vma, char * rawbuf, size_t size, int bits, int endian, size_t depth){
+gadget_list * generate_arm(unsigned long long vma, char * rawbuf, size_t size, int bits, int endian, size_t depth){
     insn_t * it;
     unsigned int i = 0, j = 0;
     uint32_t * armbuf = (uint32_t *) rawbuf;
