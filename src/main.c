@@ -87,6 +87,7 @@ int handle_execable(char * infile, size_t depth){
     unsigned long mach;
     int arch, bits;
     int endian = 0;
+    size_t sdepth = depth;
 
     bfdh = bfd_openr(infile, NULL);
     if(!bfdh){
@@ -103,6 +104,9 @@ int handle_execable(char * infile, size_t depth){
 
     barch = bfd_get_arch(bfdh);
     mach = bfd_get_mach(bfdh);
+    
+    if(bfd_big_endian(bfdh))
+            endian = 1;
 
     if(barch == bfd_arch_arm){ // ARM
         printf("Searching ROP gadgets for \"%s\" - \e[32mARM Executable\e[m...\n", infile);
@@ -122,6 +126,7 @@ int handle_execable(char * infile, size_t depth){
     }else if(barch == bfd_arch_mips){ // MIPS 
         printf("Searching ROP gadgets for \"%s\" - \e[32mMIPS Executable\e[m...\n", infile);
         arch = ARCH_mips;
+        sdepth = MIPS_DEFAULT_DEPTH;
     }else if(barch == bfd_arch_powerpc){ // PPC
         printf("Searching ROP gadgets for \"%s\" - \e[32mPowerPC Executable\e[m...\n", infile);
         arch = ARCH_powerpc;
@@ -135,7 +140,7 @@ int handle_execable(char * infile, size_t depth){
         if((flags & SEC_LOAD) && (flags & SEC_CODE)){
             printf("\n");
             printf("\e[32m[ %s ]\e[m\n", bfd_section_name(bfdh, section));
-            handle_section(bfdh, section, arch, mach, bits, endian, depth);
+            handle_section(bfdh, section, arch, mach, bits, endian, sdepth);
         }
     }
 

@@ -23,6 +23,8 @@
 #include <stdio.h>
 #include <string.h>
 
+
+
 // insn_t, int
 // Check if the given instruction is a valid instruction
 // and/or was decoded sucessfully
@@ -71,6 +73,22 @@ int is_branch(insn_t * i, int arch){
             return 1;
     }
 
+    if(arch == ARCH_mips){
+        if(strstr(i->decoded_instrs, "b\t"))
+            return 1;
+
+        if(strstr(i->decoded_instrs, "j\t"))
+            return 1;
+        
+        if(strstr(i->decoded_instrs, "jr"))
+            return 1;
+
+        if(strstr(i->decoded_instrs, "jal"))
+            return 1;
+
+        if(strstr(i->decoded_instrs, "jalr"))
+            return 1;
+    }
     if(arch == ARCH_x86){
         if(strstr(i->decoded_instrs, "jmp"))
             return 1;
@@ -116,6 +134,26 @@ void print_gadget(insn_t * ins, int type, int isthumb){
         printf("%s\n", ins->decoded_instrs);
     }
 
+}
+
+// insn_list ** -> void
+// Print all the instructions in the list
+void print_gadgets_list(insn_list **ilist){
+    insn_list * l = *ilist;
+
+    if(l){
+        if(!l->next) print_gadget(l->instr, SPECIAL_OUTPUT, NORM_INSTR);
+        else print_gadget(l->instr, END_OUTPUT, NORM_INSTR);
+    }
+
+    l = l->next;
+    while(l){
+        if(!l->next) print_gadget(l->instr, BEG_OUTPUT, NORM_INSTR);
+        else print_gadget(l->instr, MID_OUTPUT, NORM_INSTR);
+        l = l->next;
+    }
+    
+    printf("_______________________________________________________________\n\n");
 }
 
 // insn_t *, int, int

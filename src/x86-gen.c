@@ -41,6 +41,15 @@ int is_x86_end(char * rawbuf, int bits){
     return acc;
 }
 
+// char *, int
+// Check if the given buffer is pointing to a search stoppger (a.k.a ret)
+int is_x86_stop(char * rawbuf, int bits){
+
+    if(!rawbuf)
+        return 0;
+ 
+    return rawbuf[0] == (char) 0xc3; // ret
+}
 
 // x86_node_t *, char *, char *, size_t, size_t, size_t, int, size_t
 // Generate all the gadgets connected to the x86 node
@@ -55,7 +64,7 @@ void get_children_x86(x86_node_t * currnode, char * begptr, char * rawbuf, unsig
         rvma = it->vma - i;
         if(nrawbuf < begptr) break;
         if(rvma < lowervma) break;
-        if(is_x86_end(nrawbuf, bits)) break;
+        if(is_x86_stop(nrawbuf, bits)) break;
         
         curr = disassemble_one(rvma, nrawbuf, bufsize + i, ARCH_x86, bits, 0);
         if(is_branch(curr, ARCH_x86)) break;

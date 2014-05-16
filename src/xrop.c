@@ -23,16 +23,13 @@
 #include "../include/common.h"
 #include "../include/x86-gen.h"
 #include "../include/arm-gen.h"
+#include "../include/mips-gen.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
 
 
 gadget_list * generate_powerpc(unsigned long long vma, char * rawbuf, size_t size, int bits, int endian, size_t depth){
-    return NULL;
-}
-
-gadget_list * generate_mips(unsigned long long vma, char * rawbuf, size_t size, int bits, int endian, size_t depth){
     return NULL;
 }
 

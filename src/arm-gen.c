@@ -61,26 +61,6 @@ void print_gadgets_bt(thumb_node_t * n, size_t depth){
 }
 
 
-// insn_list ** -> void
-// Print all the instructions in the list
-void print_gadgets_list(insn_list **ilist){
-    insn_list * l = *ilist;
-
-    if(l){
-        if(!l->next) print_gadget(l->instr, SPECIAL_OUTPUT, NORM_INSTR);
-        else print_gadget(l->instr, END_OUTPUT, NORM_INSTR);
-    }
-
-    l = l->next;
-    while(l){
-        if(!l->next) print_gadget(l->instr, BEG_OUTPUT, NORM_INSTR);
-        else print_gadget(l->instr, MID_OUTPUT, NORM_INSTR);
-        l = l->next;
-    }
-    
-    printf("_______________________________________________________________\n\n");
-}
-
 // unint32_t *, int, int -> int
 // Is the buffer pointing to a ARM gadget end sequence
 int is_arm_end(uint32_t * rawbuf, int bits, int endian){

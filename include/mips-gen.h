@@ -1,5 +1,5 @@
 /*
-    common.h -- Prototypes for common functions
+    mips-gen.h -- prototypes for MIPS gadget search functions
     Copyright (C) 2014  Amat I. Cama
 
     This file is part of xrop.
@@ -19,30 +19,13 @@
  
 */
 
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef MIPSGEN_H
+#define MIPSGEN_H
 
 #include "xrop.h"
 
-// insn_list ** -> void
-// Print all the instructions in the list
-void print_gadgets_list(insn_list **ilist);
-
-// insn_t, int
-// Check if the given instruction is a valid instruction
-// and/or was decoded sucessfully
-int is_valid_instr(insn_t * i, int arch);
-
-// insn_t *
-// Is the instruction an unconditional branch
-int is_branch(insn_t * i, int arch);
-
-// insn_t * -> void
-// Print a gadget in a formatted way
-void print_gadget(insn_t * ins, int type, int isthumb);
-
-// insn_t *, int, int
-// Print the path with the given output option
-void print_path(insn_t * path[], int pathlen, int output);
+// unsigned int, char *, size_t, int, int, size_t
+// Generate all the MIPS gadgets
+gadget_list * generate_mips(unsigned long long vma, char * rawbuf, size_t size, int bits, int endian, size_t depth);
 
 #endif
