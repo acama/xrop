@@ -89,6 +89,15 @@ int is_branch(insn_t * i, int arch){
         if(strstr(i->decoded_instrs, "jalr"))
             return 1;
     }
+    
+    if(arch == ARCH_powerpc){
+        if(strstr(i->decoded_instrs, "b\t"))
+            return 1;
+
+        if(strstr(i->decoded_instrs, "bl\t"))
+            return 1;
+    }
+
     if(arch == ARCH_x86){
         if(strstr(i->decoded_instrs, "jmp"))
             return 1;

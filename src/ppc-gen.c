@@ -37,9 +37,13 @@ int is_ppc_end(uint32_t * rawbuf, int bits, int endian){
     ins = rawbuf[0];
 
     if(!endian)
-        acc = (ins == 0x4e800020);
+        acc = (ins == 0x4e800020) ||
+              (ins == 0x4e800421) ||
+              (ins == 0x4e800420);
     else
-        acc = (ins == 0x2000804e);
+        acc = (ins == 0x2000804e) ||
+              (ins == 0x2104804e) ||
+              (ins == 0x2004804e);
 
     return acc;
 }
