@@ -1,7 +1,7 @@
 xrop
 =======
 
-xrop is a simple tool to generate ROP gadgets. It supports PE, ELF, Mach-O and perhaps other executable formats. It uses the [libxdisasm](http://github.com/acama/libxdisasm) library and currently supports generating ROP gadgets for x86, x86_64, arm, and soon ppc and mips.
+xrop is a simple tool to generate ROP gadgets. It supports PE, ELF, Mach-O and perhaps other executable formats. It uses the [libxdisasm](http://github.com/acama/libxdisasm) library and currently supports generating ROP gadgets for x86, x86_64, arm, and soon ppc.
 
 Build Instructions:
 -------------------
