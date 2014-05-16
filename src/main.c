@@ -130,6 +130,7 @@ int handle_execable(char * infile, size_t depth){
     }else if(barch == bfd_arch_powerpc){ // PPC
         printf("Searching ROP gadgets for \"%s\" - \e[32mPowerPC Executable\e[m...\n", infile);
         arch = ARCH_powerpc;
+        sdepth = PPC_DEFAULT_DEPTH;
     }else{
         printf("%s: Unsupported architecutre\n", XNAME);
         return -1;

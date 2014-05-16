@@ -28,11 +28,13 @@
 // Sizes
 #define DEFAULT_DEPTH 4
 #define MIPS_DEFAULT_DEPTH 8
+#define PPC_DEFAULT_DEPTH 8
 #define MAX_DEPTH 20
 #define X86MAX_INSTR_SIZE 15
 #define MAX_GADGET_LEN 100
 #define ARM_INSTR_SIZE 4
 #define MIPS_INSTR_SIZE 4
+#define PPC_INSTR_SIZE 4
 
 // Instruction output function macros
 #define BEG_OUTPUT 2

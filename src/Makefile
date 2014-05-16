@@ -20,8 +20,8 @@ makelibwithstatic:
 	cd libxdisasm && $(MAKE) withstatic 
 	cp libxdisasm/build/lib/libxdisasm.so ../build/lib/libxdisasm.so
 
-xropbin: main.o xrop.o x86-gen.o common.o arm-gen.o mips-gen.o
-	$(CC) $(CFLAGS) xrop.o main.o common.o x86-gen.o arm-gen.o mips-gen.o -o ${APP} $(LDFLAGS)
+xropbin: main.o xrop.o x86-gen.o common.o arm-gen.o mips-gen.o ppc-gen.o
+	$(CC) $(CFLAGS) xrop.o main.o common.o x86-gen.o arm-gen.o mips-gen.o ppc-gen.o -o ${APP} $(LDFLAGS)
 
 clean:
 	rm -rf *.o ${APP}

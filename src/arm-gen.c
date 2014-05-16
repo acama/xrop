@@ -71,13 +71,21 @@ int is_arm_end(uint32_t * rawbuf, int bits, int endian){
 
     ins = rawbuf[0];
 
-    acc = (((ins >> 25) & 7) == 4) 
-        && ((ins >> 20) & 1) 
-        && (ins & 0x8000); // Load Multiple instructions that manipulate PC
+    if(!endian){ // Little Endian
+        acc = (((ins >> 25) & 7) == 4) 
+            && ((ins >> 20) & 1) 
+            && (ins & 0x8000); // Load Multiple instructions that manipulate PC
 
-    acc |= (((ins >> 8) & 0x1ffff) == 0x12fff); // Branch and Exchange instructions
-    acc |= (((ins >> 24) & 0xff) == 0xef); // SVC
+        acc |= (((ins >> 8) & 0x1ffff) == 0x12fff); // Branch and Exchange instructions
+        acc |= (((ins >> 24) & 0xff) == 0xef); // SVC
+    }else{ // TODO: Big Endian
+        acc = (((ins >> 25) & 7) == 4) 
+            && ((ins >> 20) & 1) 
+            && (ins & 0x8000); // Load Multiple instructions that manipulate PC
 
+        acc |= (((ins >> 8) & 0x1ffff) == 0x12fff); // Branch and Exchange instructions
+        acc |= (((ins >> 24) & 0xff) == 0xef); // SVC
+    }
     return acc;
 }
 

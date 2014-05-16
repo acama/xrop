@@ -24,14 +24,11 @@
 #include "../include/x86-gen.h"
 #include "../include/arm-gen.h"
 #include "../include/mips-gen.h"
+#include "../include/ppc-gen.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
 
-
-gadget_list * generate_powerpc(unsigned long long vma, char * rawbuf, size_t size, int bits, int endian, size_t depth){
-    return NULL;
-}
 
 // unsigned int, char *, size_t, int, int, int, size_t
 // Search for gadgets in given buffer
@@ -43,7 +40,7 @@ gadget_list * gadget_search(unsigned long long vma, char * rawbuf, size_t size, 
     }else if(arch == ARCH_arm){
         l = generate_arm(vma, rawbuf, size, bits, endian, depth);
     }else if(arch == ARCH_powerpc){ 
-        l = generate_arm(vma, rawbuf, size, bits, endian, depth);
+        l = generate_powerpc(vma, rawbuf, size, bits, endian, depth);
     }else if(arch == ARCH_mips){ 
         l = generate_mips(vma, rawbuf, size, bits, endian, depth);
     }
