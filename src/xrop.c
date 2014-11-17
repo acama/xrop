@@ -28,22 +28,30 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+#include <capstone/capstone.h>
 
+// Capstone Handle
+csh handle;
 
 // unsigned int, char *, size_t, int, int, int, size_t
 // Search for gadgets in given buffer
 gadget_list * gadget_search(unsigned long long vma, char * rawbuf, size_t size, int arch, int bits, int endian, size_t depth){
     gadget_list * l = NULL;
-
-    if(arch == ARCH_x86){
+    printf("%d\n", arch);
+    if (cs_open(arch, bits + endian, &handle) != CS_ERR_OK)
+        return NULL;
+//    cs_option(handle, CS_OPT_DETAIL, CS_OPT_ON);
+    if(arch == CS_ARCH_X86){
         l = generate_x86(vma, rawbuf, size, bits, depth); 
-    }else if(arch == ARCH_arm){
+    }else if(arch == CS_ARCH_ARM){
         l = generate_arm(vma, rawbuf, size, bits, endian, depth);
-    }else if(arch == ARCH_powerpc){ 
+    }else if(arch == CS_ARCH_PPC){ 
         l = generate_powerpc(vma, rawbuf, size, bits, endian, depth);
-    }else if(arch == ARCH_mips){ 
+    }else if(arch == CS_ARCH_MIPS){ 
         l = generate_mips(vma, rawbuf, size, bits, endian, depth);
     }
+
+    cs_close(&handle);
 
     return l;
 }

@@ -26,6 +26,7 @@
 #include <stdint.h>
 
 
+extern csh handle;
 
 // unint32_t *, int, int -> int
 // Is the buffer pointing to a MIPS gadget end sequence
@@ -48,29 +49,31 @@ int is_mips_end(uint32_t * rawbuf, int bits, int endian){
 // unsigned int, char *, size_t, int, int, size_t
 // Generate all the MIPS gadgets
 gadget_list * generate_mips(unsigned long long vma, char * rawbuf, size_t size, int bits, int endian, size_t depth){
-    insn_t * it;
+    cs_insn * it;
     unsigned int i = 0, j = 0;
     uint32_t * mipsbuf = (uint32_t *) rawbuf;
     size_t nsize_mips = size / 4;
+    size_t dec_count;
 
     for(i = 0; i < nsize_mips; i++){
         if(is_mips_end(&mipsbuf[i], bits, endian)){
             insn_list * gadget = NULL;
-            it = disassemble_one(vma + i * 4, (char *)&mipsbuf[i], MIPS_INSTR_SIZE, ARCH_mips, bits, endian);
-            if(!is_valid_instr(it, ARCH_mips)) continue;
+            //it = disassemble_one(vma + i * 4, (char *)&mipsbuf[i], MIPS_INSTR_SIZE, ARCH_mips, bits, endian);
+            dec_count = cs_disasm_ex(handle, (char *)&mipsbuf[i], MIPS_INSTR_SIZE, vma + i * 4, 1, &it); // TODO: error checking
+            if(dec_count != 1) continue;
             prepend_instr(it, &gadget);
             for(j = 1; j < depth; j++){
+                cs_insn * curr;
                 char * iptr = (char *)&mipsbuf[i] - (j * 4);
                 unsigned int nvma = (vma + i * 4) - (j * 4);
                 if(nvma < vma) break;
-                it = disassemble_one(nvma, iptr, MIPS_INSTR_SIZE, ARCH_mips, bits, endian);
-                if(!is_valid_instr(it, ARCH_mips) 
-                        || is_mips_end((uint32_t *)iptr, bits, endian) 
-                        || is_branch(it, ARCH_mips)) break;
-                prepend_instr(it, &gadget);
+                //it = disassemble_one(nvma, iptr, MIPS_INSTR_SIZE, ARCH_mips, bits, endian);
+                dec_count = cs_disasm_ex(handle, iptr, MIPS_INSTR_SIZE, nvma, 1, &curr); // TODO: error checking
+                if((dec_count != 1) || is_mips_end((uint32_t *)iptr, bits, endian)) break;
+                prepend_instr(curr, &gadget);
             }
             print_gadgets_list(&gadget);
-            free_all_instrs(&gadget);
+            //free_all_instrs(&gadget);
         }
     }
 

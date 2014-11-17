@@ -23,6 +23,9 @@
 #include "../include/common.h"
 #include <string.h>
 #include <stdio.h>
+#include <capstone/capstone.h>
+
+extern csh handle;
 
 // char *, int
 // Check if the given buffer is pointing to gadget-end sequence
@@ -33,9 +36,10 @@ int is_x86_end(char * rawbuf, int bits){
         return 0;
 
     acc = ((unsigned short *)rawbuf)[0] == (unsigned short)0x80cd // int 80h 
-            || rawbuf[0] == (char) 0xc3; // ret
+            || rawbuf[0] == (char) 0xc3 || rawbuf[0] == (char) 0xcf // ret
+            || ((unsigned short*)rawbuf)[0] == (unsigned short)0x340f;
     
-    if(bits == 64) 
+    if(bits == CS_MODE_64) 
         acc |= ((unsigned short *) rawbuf)[0] == 0x050f; // syscall
 
     return acc;
@@ -55,20 +59,23 @@ int is_x86_stop(char * rawbuf, int bits){
 // Generate all the gadgets connected to the x86 node
 void get_children_x86(x86_node_t * currnode, char * begptr, char * rawbuf, unsigned long long lowervma, size_t bufsize, int bits, size_t depth){
     int i = 0;
-    insn_t * it = NULL, * curr = NULL;
+    //insn_t * it = NULL, * curr = NULL;
+    cs_insn * it = NULL, * curr = NULL;
+    size_t dec_count;
     unsigned long long rvma = 0;
     it = currnode->insn;
 
     for(i = 1; i < (X86MAX_INSTR_SIZE) && depth > 0; i++){
         char * nrawbuf = rawbuf - i;
-        rvma = it->vma - i;
+        rvma = it[0].address - i;
         if(nrawbuf < begptr) break;
         if(rvma < lowervma) break;
         if(is_x86_stop(nrawbuf, bits)) break;
         
-        curr = disassemble_one(rvma, nrawbuf, bufsize + i, ARCH_x86, bits, 0);
-        if(is_branch(curr, ARCH_x86)) break;
-        if(is_valid_instr(curr, ARCH_x86) && (curr->instr_size == i)){
+        //curr = disassemble_one(rvma, nrawbuf, bufsize + i, ARCH_x86, bits, 0);
+        dec_count = cs_disasm_ex(handle, nrawbuf, X86MAX_INSTR_SIZE, rvma, 1, &curr); // TODO: error checking
+        //if(is_branch(curr, ARCH_x86)) break;
+        if((dec_count == 1) && (curr[0].size == i)){
             x86_node_t * tmpn = malloc(sizeof(x86_node_t));
             if(!tmpn){
                 perror("malloc");
@@ -84,7 +91,7 @@ void get_children_x86(x86_node_t * currnode, char * begptr, char * rawbuf, unsig
 
 // x86_node_t *, insn_t *, size_t, int
 // Recursively print the gadgets in the x86 trie
-void r_print_gadgets_trie(x86_node_t * n, insn_t * path[], size_t depth, int pathlen){
+void r_print_gadgets_trie(x86_node_t * n, cs_insn * path[], size_t depth, int pathlen){
     int i = 0;
     x86_node_t * tmp = NULL;   
     int acc = 1;
@@ -112,17 +119,19 @@ void r_print_gadgets_trie(x86_node_t * n, insn_t * path[], size_t depth, int pat
 // x86_node_t *, size_t
 // Print the gadgets in the x86 trie
 void print_gadgets_trie(x86_node_t * n, size_t depth){
-    insn_t * path[MAX_GADGET_LEN] = {0};
+    cs_insn * path[MAX_GADGET_LEN] = {0};
     r_print_gadgets_trie(n, path, depth, 0);
 }
 
 // unsigned int, char *, size_t, int, size_t
 // Generate the x86 gadgets in the given buffer
 gadget_list * generate_x86(unsigned long long vma, char * rawbuf, size_t size, int bits, size_t depth){
-    insn_t * it = NULL;
+    //insn_t * it = NULL;
     unsigned long long  i = 0;
     unsigned long long rvma = 0;
     x86_node_t * retrootn = NULL;
+    gadgets * ggts;
+    cs_insn * it;
     
     // Find all ret instructions
     for(; i < size; i++){
@@ -135,10 +144,9 @@ gadget_list * generate_x86(unsigned long long vma, char * rawbuf, size_t size, i
             memset(retrootn, 0, sizeof(x86_node_t));
 
             rvma = vma + i;
-            it = disassemble_one(rvma, rawbuf + i, X86MAX_INSTR_SIZE, ARCH_x86, bits, 0);
+            cs_disasm_ex(handle, rawbuf +i, X86MAX_INSTR_SIZE, rvma, 1, &it); // TODO: error checking
             retrootn->insn = it;
             get_children_x86(retrootn, rawbuf, rawbuf + i, vma, size - i, bits, depth);
-
             print_gadgets_trie(retrootn, depth);
         }
 

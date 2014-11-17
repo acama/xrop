@@ -30,7 +30,7 @@
 // and/or was decoded sucessfully
 int is_valid_instr(insn_t * i, int arch){
     char c;
-
+/*
     if(!i){
         return 0;
     }
@@ -42,20 +42,19 @@ int is_valid_instr(insn_t * i, int arch){
                 && !strstr(i->decoded_instrs, "<intern");
     }else if(arch == ARCH_arm){ 
         return (c != '\t') && (c != '.') && !strstr(i->decoded_instrs, "illegal");
-        //return !strstr(i->decoded_instrs, "UNDEFINED") && (c != '.');
     }else if(arch == ARCH_mips){
         return (c != '0') && (c != '.');
     }else if(arch == ARCH_powerpc){
         return (c != '.');
     }
-
+*/
     return 0;
 }
 
 // insn_t *
 // Is the instruction an unconditional branch
 int is_branch(insn_t * i, int arch){
-
+/*
     if(arch == ARCH_arm){
         if(strstr(i->decoded_instrs, "b\t"))
             return 1;
@@ -103,48 +102,43 @@ int is_branch(insn_t * i, int arch){
             return 1;
     }
 
+*/
     return 0;
 }
 
 
 // insn_t * -> void
 // Print a gadget in a formatted way
-void print_gadget(insn_t * ins, int type, int isthumb){
+void print_gadget(cs_insn * ins, int type, int isthumb){
     char * dec = NULL, * ptr = NULL;
     if(!ins){
         return;
     }
  
-    dec = ins->decoded_instrs;
-
     if(type == END_OUTPUT || type == SPECIAL_OUTPUT){
         if(isthumb)
-            printf("\e[34;1m> 1 + %-18p\e[m", (void *)ins->vma);
+            printf("\e[34;1m> 1 + %-18p\e[m", (void *)ins[0].address);
         else 
-            printf("\e[34;1m> %-22p\e[m", (void *)ins->vma);
+            printf("\e[34;1m> %-22p\e[m", (void *)ins[0].address);
     }else{
         if(isthumb)
-            printf("\e[34m1 + %-20p\e[m", (void *)ins->vma);
+            printf("\e[34m1 + %-20p\e[m", (void *)ins[0].address);
         else 
-            printf("\e[34m%-24p\e[m", (void *)ins->vma);
+            printf("\e[34m%-24p\e[m", (void *)ins[0].address);
     }
 
-    // remove uninteresting comments inserted by disassembler
-    if((ptr = strstr(dec, "; <U"))){  // "; <UNPREDICTABLE>"
-        ptr[0] = '\0'; 
-    }
-    if((ptr = strstr(dec, "; u"))){   // "; unpredictable branch in IT block"
-        ptr[0] = '\0'; 
-    }
     
     if(type == BEG_OUTPUT || type == SPECIAL_OUTPUT){
-        printf("\e[31m%s\n\e[m", ins->decoded_instrs);
+        printf("\e[31m%s\t%s\n\e[m", ins[0].mnemonic, ins[0].op_str);
     }else{
-        printf("%s\n", ins->decoded_instrs);
+        printf("%s\t%s\n", ins[0].mnemonic, ins[0].op_str);
     }
 
 }
-
+/*
+void print_gadget(cs_insn * it, int type, int isthumb){
+    printf("0x%p:\t%s\t\t%s\n", it[0].address, it[0].mnemonic, it[0].op_str);
+}*/
 // insn_list ** -> void
 // Print all the instructions in the list
 void print_gadgets_list(insn_list **ilist){
@@ -167,7 +161,7 @@ void print_gadgets_list(insn_list **ilist){
 
 // insn_t *, int, int
 // Print the path with the given output option
-void print_path(insn_t * path[], int pathlen, int output){
+void print_path(cs_insn * path[], int pathlen, int output){
     int i = 0;
 
     if(pathlen == 0){
@@ -182,4 +176,164 @@ void print_path(insn_t * path[], int pathlen, int output){
 
     printf("_______________________________________________________________\n\n");
 }
+// insn_t -> void
+// Free the memory
+void free_instr(insn_t *i){
+    
+    if(!i){
+        return;
+    }
+    
+    free(i->decoded_instrs);
+    free(i->opcodes);
+    free(i);
+}
 
+// insn_list ** -> void
+// Free the memory
+// Dirty
+void free_all_instrs(insn_list **ilist){
+    insn_list * l, * f;
+
+    if(!ilist){
+        return;
+    }
+    l = *ilist;
+
+    /* free the insn_t's */
+    while(l != NULL){
+        free_instr(l->instr);
+        f = l;
+        l = l->next;
+        free(f);
+    }
+}
+
+// insn_t * -> void
+// Print instruction in a formatted way
+void print_instr(insn_t * ins){
+    size_t i, l;
+    char * tmpbuf, * ptr;
+
+    if(!ins)
+        return;
+
+    printf("%016llX  ", ins->vma);
+    l = ins->instr_size;
+   
+    tmpbuf = (char *) malloc((l * 2) + 1);
+
+    if(!tmpbuf){
+        perror("malloc");
+        return;
+    }
+
+    ptr = tmpbuf;
+    for(i = 0; i < l; i++){
+        sprintf(ptr, "%02X", (unsigned char)(ins->opcodes[i]));
+        ptr += 2;
+    }
+
+    if(l < 15)
+        printf("%-18s", tmpbuf);
+    else
+        printf("%-36s", tmpbuf);
+    printf("%s\n", ins->decoded_instrs);
+    free(tmpbuf);
+}
+
+/*
+// insn_list ** -> void
+// Print all the instructions in a formatted way
+void print_all_instrs(insn_list **ilist){
+    insn_list * l = *ilist;
+
+    while(l != NULL){
+        print_instr(l->instr);
+        l = l->next;
+    }
+}
+*/
+
+// insn_list ** -> size_t
+// Count the number of instructions in the list
+size_t instr_num(insn_list **ilist){
+    insn_list * l;
+    size_t len = 0;
+
+    if(!ilist)
+        return 0;
+
+    l = *ilist;
+
+    while(l != NULL){
+        len++;
+        l = l->next;
+    }
+
+    return len;
+}
+
+// insn_t *, insn_list ** -> void
+// Initialize list
+void init_list(insn_t *i, insn_list **ilist){
+    insn_list * l = (insn_list *) malloc(sizeof(insn_list));
+
+    if(!l){
+        perror("malloc");
+        return;
+    }
+
+    l->instr = i;
+    l->next = NULL;
+    *ilist = l;
+}
+
+// insn_t *, insn_list ** -> void
+// Prepend instruction to list
+void prepend_instr(insn_t * i, insn_list **ilist){
+    insn_list * tmp, *c;
+
+    if(!ilist)
+        return;
+
+    c = *ilist;
+
+    if(!c){
+        init_list(i, ilist);
+        return;
+    }
+
+
+    tmp = (insn_list *) malloc(sizeof(insn_list));
+    tmp->instr = i;
+    tmp->next = *ilist;
+
+    *ilist = tmp; 
+}
+
+// insn_t *, insn_list ** -> void
+// Append instruction to list
+void append_instr(insn_t * i, insn_list **ilist){
+    insn_list * tmp, *c;
+
+    if(!ilist)
+        return;
+
+    c = *ilist; 
+    
+    if(!c){
+        init_list(i, ilist);
+        return;
+    }
+
+    while(c->next != NULL){
+        c = c->next;
+    }
+
+    tmp = (insn_list *) malloc(sizeof(insn_list));
+    tmp->instr = i;
+    tmp->next = NULL;
+
+    c->next = tmp; 
+}

@@ -19,8 +19,8 @@
  
 */
 
-#define PACKAGE 1
-#define PACKAGE_VERSION 1
+#define PACKAGE 0.2
+#define PACKAGE_VERSION 0.2
 #include <bfd.h>
 #include <dis-asm.h>
 #include <stdio.h>
@@ -30,10 +30,10 @@
 #include <string.h>
 #include <limits.h>
 #include <malloc.h>
-#include "libxdisasm/include/xdisasm.h"
 #include "../include/xrop.h"
+#include <capstone/capstone.h>
 
-#define VERSION "1.0"
+#define VERSION "0.2"
 #define XNAME "xrop"
 
 // Print version
@@ -86,7 +86,7 @@ int handle_execable(char * infile, size_t depth){
     enum bfd_architecture barch;
     unsigned long mach;
     int arch, bits;
-    int endian = 0;
+    int endian = CS_MODE_LITTLE_ENDIAN;
     size_t sdepth = depth;
 
     bfdh = bfd_openr(infile, NULL);
@@ -106,30 +106,31 @@ int handle_execable(char * infile, size_t depth){
     mach = bfd_get_mach(bfdh);
     
     if(bfd_big_endian(bfdh))
-            endian = 1;
+            endian = CS_MODE_BIG_ENDIAN;
 
     if(barch == bfd_arch_arm){ // ARM
         printf("Searching ROP gadgets for \"%s\" - \e[32mARM Executable\e[m...\n", infile);
-        arch = ARCH_arm;
+        arch = CS_ARCH_ARM;
     }else if(barch == bfd_arch_i386){ // x86
-        arch = ARCH_x86;
+        arch = CS_ARCH_X86;
         if(mach == bfd_mach_i386_i8086){
             printf("Searching ROP gadgets for 16-bit is not supported\n");
             exit(-1);
         }else if(mach == bfd_mach_i386_i386){
             printf("Searching ROP gadgets for \"%s\" - \e[32mx86 Executable\e[m...\n", infile);
-            bits = 32;
+            bits = CS_MODE_32;
         }else{
             printf("Searching ROP gadgets for \"%s\" - \e[32mx86_64 Executable\e[m...\n", infile);
-            bits = 64;
+            bits = CS_MODE_64;
         }
     }else if(barch == bfd_arch_mips){ // MIPS 
         printf("Searching ROP gadgets for \"%s\" - \e[32mMIPS Executable\e[m...\n", infile);
-        arch = ARCH_mips;
+        arch = CS_ARCH_MIPS;
+        bits = CS_MODE_32;
         sdepth = MIPS_DEFAULT_DEPTH;
     }else if(barch == bfd_arch_powerpc){ // PPC
         printf("Searching ROP gadgets for \"%s\" - \e[32mPowerPC Executable\e[m...\n", infile);
-        arch = ARCH_powerpc;
+        arch = CS_ARCH_PPC;
         sdepth = PPC_DEFAULT_DEPTH;
     }else{
         printf("%s: Unsupported architecutre\n", XNAME);
@@ -138,6 +139,7 @@ int handle_execable(char * infile, size_t depth){
 
     for(section = bfdh->sections; section; section = section->next){
         flagword flags = bfd_get_section_flags(bfdh, section);
+        //printf("%s\n", bfd_section_name(bfdh, section));
         if((flags & SEC_LOAD) && (flags & SEC_CODE)){
             printf("\n");
             printf("\e[32m[ %s ]\e[m\n", bfd_section_name(bfdh, section));
@@ -258,6 +260,7 @@ int main(int argc, char **argv){
     if(aval){
         vma = strtol(aval, NULL, 0);
         if(vma == LONG_MAX || vma == LONG_MIN || vma == 0){
+            printf("%d\n", vma);
             perror("strtol");
             exit(-1);
         }
@@ -289,16 +292,16 @@ int main(int argc, char **argv){
 
     if(rval){
         if(!strcmp(rval, "arm")){
-            arch = ARCH_arm;
+            arch = CS_ARCH_ARM;
         }
         else if(!strcmp(rval, "powerpc")){
-            arch = ARCH_powerpc;
+            arch = CS_ARCH_PPC;
         } 
         else if(!strcmp(rval, "x86")){
-            arch = ARCH_x86;
+            arch = CS_ARCH_X86;
         } 
         else if(!strcmp(rval, "mips")){
-            arch = ARCH_mips;
+            arch = CS_ARCH_MIPS;
         }
         else{
             print_usage();
@@ -308,6 +311,7 @@ int main(int argc, char **argv){
     if(eval){ 
         hdrlen = strtol(eval, NULL, 10);
         if(hdrlen == LONG_MAX || hdrlen == LONG_MIN || hdrlen == 0){
+            printf("%d\n", hdrlen);
             perror("strtol");
             exit(-1);
         }

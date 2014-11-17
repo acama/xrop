@@ -24,6 +24,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <capstone/capstone.h>
+
+extern csh handle;
 
 // thumb_node_t *, insn_t *, size_t, int
 // Recursively print the gadgets in the Thumb binary tree
@@ -84,7 +87,7 @@ int is_arm_end(uint32_t * rawbuf, int bits, int endian){
             && (ins & 0x8000); // Load Multiple instructions that manipulate PC
 
         acc |= (((ins >> 8) & 0x1ffff) == 0x12fff); // Branch and Exchange instructions
-        acc |= (((ins >> 24) & 0xff) == 0xef); // SVC
+        //acc |= (((ins >> 24) & 0xff) == 0xef); // SVC
     }
     return acc;
 }
@@ -127,23 +130,25 @@ int is_thumb16_end(uint16_t * rawbuf, int bits, int endian){
 // thumb_node_t *, char *, char *, size_t, size_t, size_t, int, size_t, int
 // Generate all the gadgets connected to the Thumb node
 void get_children_thumb(thumb_node_t * currnode, char * begptr, char * rawbuf, unsigned long long lowervma, size_t bufsize, int bits, size_t depth, int endian){
-    insn_t * it = NULL, * curr = NULL;
+    cs_insn * it = NULL, * curr = NULL;
     unsigned int rvma = 0;
     char * nrawbuf = NULL;
     it = currnode->insn;
     thumb_node_t * leftn = NULL;
     thumb_node_t * rightn = NULL;
+    size_t dec_count;
 
     if(depth == 0) return;
 
     nrawbuf = rawbuf - 2;
-    rvma = it->vma - 2;
+    rvma = it[0].address - 2;
     if(nrawbuf < begptr) return;
     if(rvma < lowervma) return;
     if(is_thumb16_end((uint16_t *)nrawbuf, bits, endian)) return;
 
-    curr = disassemble_one(rvma, nrawbuf, bufsize + 2, ARCH_arm, 16, 0);
-    if(is_valid_instr(curr, ARCH_arm) && (curr->instr_size == 2) && !is_branch(curr, ARCH_arm)){
+    //curr = disassemble_one(rvma, nrawbuf, bufsize + 2, ARCH_arm, 16, 0);
+    dec_count = cs_disasm_ex(handle, nrawbuf, bufsize + 2, rvma, 1, &curr); // TODO: error checking
+    if((dec_count == 1) && (curr[0].size == 2)){
         leftn = malloc(sizeof(thumb_node_t));
         if(!leftn){
             perror("malloc");
@@ -156,13 +161,14 @@ void get_children_thumb(thumb_node_t * currnode, char * begptr, char * rawbuf, u
     }
 
     nrawbuf = rawbuf - 4;
-    rvma = it->vma - 4;
+    rvma = it[0].address - 4;
     if(nrawbuf < begptr) return;
     if(rvma < lowervma) return;
     //if(is_thumb32_end((uint32_t *)nrawbuf, bits, endian)) return; // TODO: implement this
 
-    curr = disassemble_one(rvma, nrawbuf, bufsize + 4, ARCH_arm, 16, 0);
-    if(is_valid_instr(curr, ARCH_arm) && (curr->instr_size == 4) && !is_branch(curr, ARCH_arm)){
+    //curr = disassemble_one(rvma, nrawbuf, bufsize + 4, ARCH_arm, 16, 0);
+    dec_count = cs_disasm_ex(handle, nrawbuf, bufsize + 4, rvma, 1, &curr); // TODO: error checking
+    if((dec_count == 1) && (curr[0].size == 4)){
         rightn = malloc(sizeof(thumb_node_t));
         if(!rightn){
             perror("malloc");
@@ -178,37 +184,45 @@ void get_children_thumb(thumb_node_t * currnode, char * begptr, char * rawbuf, u
 // unsigned int, char *, size_t, int, int, size_t
 // Generate all the ARM gadgets
 gadget_list * generate_arm(unsigned long long vma, char * rawbuf, size_t size, int bits, int endian, size_t depth){
-    insn_t * it;
+    printf("Here !!!!!");
+    cs_insn * it;
     unsigned int i = 0, j = 0;
     uint32_t * armbuf = (uint32_t *) rawbuf;
     uint16_t * thmbuf = (uint16_t *) rawbuf;
     size_t nsize_arm = size / 4;
     size_t nsize_thm = size / 2;
     thumb_node_t * troot = NULL;
+    size_t dec_count;
 
     // From the ARM 32 bit endings
     for(i = 0; i < nsize_arm; i++){
         if(is_arm_end(&armbuf[i], bits, endian)){
             insn_list * gadget = NULL;
-            it = disassemble_one(vma + i * 4, (char *)&armbuf[i], ARM_INSTR_SIZE, ARCH_arm, bits, endian);
-            if(!is_valid_instr(it, ARCH_arm)) continue;
+            dec_count = cs_disasm_ex(handle, (char *)&armbuf[i], ARM_INSTR_SIZE, vma + i * 4, 1, &it); // TODO: error checking
+            //it = disassemble_one(vma + i * 4, (char *)&armbuf[i], ARM_INSTR_SIZE, ARCH_arm, bits, endian);
+            if(dec_count < 1) continue;
             prepend_instr(it, &gadget);
             for(j = 1; j < depth; j++){
                 char * iptr = (char *)&armbuf[i] - (j * 4);
                 unsigned int nvma = (vma + i * 4) - (j * 4);
                 if(nvma < vma) break;
-                it = disassemble_one(nvma, iptr, ARM_INSTR_SIZE, ARCH_arm, bits, endian);
+                dec_count = cs_disasm_ex(handle, iptr, ARM_INSTR_SIZE, nvma, 1, &it); // TODO: error checking
+                //it = disassemble_one(nvma, iptr, ARM_INSTR_SIZE, ARCH_arm, bits, endian);
+                /*
                 if(!is_valid_instr(it, ARCH_arm) 
                         || is_arm_end((uint32_t *)iptr, bits, endian) 
                         || is_branch(it, ARCH_arm)) break;
+                */
+                if(dec_count != 1) break;
                 prepend_instr(it, &gadget);
             }
             print_gadgets_list(&gadget);
-            free_all_instrs(&gadget);
+            //free_all_instrs(&gadget);
         }
     }
 
     // From the Thumb 16 bit endings
+    cs_option(handle, CS_OPT_MODE, CS_MODE_THUMB + CS_MODE_LITTLE_ENDIAN);
     for(i = 0; i < nsize_thm; i++){
         if(is_thumb16_end(&thmbuf[i], bits, endian)){
             troot = malloc(sizeof(thumb_node_t));
@@ -218,8 +232,9 @@ gadget_list * generate_arm(unsigned long long vma, char * rawbuf, size_t size, i
             }
             memset(troot, 0, sizeof(thumb_node_t));
 
-            it = disassemble_one(vma + i * 2, rawbuf + i * 2, nsize_thm - i * 2, ARCH_arm, 16, endian);
-            if(!is_valid_instr(it, ARCH_arm)) continue;
+            //it = disassemble_one(vma + i * 2, rawbuf + i * 2, nsize_thm - i * 2, ARCH_arm, 16, endian);
+            dec_count = cs_disasm_ex(handle, rawbuf + i * 2, nsize_thm - i * 2, vma + i * 2, 1, &it); // TODO: error checking
+            if(dec_count < 1) continue;
             troot->insn = it;
             get_children_thumb(troot, rawbuf, rawbuf + i * 2, vma, nsize_thm - i * 2, bits, depth, endian);
 
@@ -227,7 +242,6 @@ gadget_list * generate_arm(unsigned long long vma, char * rawbuf, size_t size, i
             //print_gadgets_trie(retrootn, depth);
         }
     } 
- 
     /* TODO: Implement this
     // From the Thumb 32 bit endings
     for(i = 0; i < nsize_arm; i++){

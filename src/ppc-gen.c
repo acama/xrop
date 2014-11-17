@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
+extern csh handle;
 
 // unint32_t *, int, int -> int
 // Is the buffer pointing to a PowerPC gadget end sequence
@@ -51,29 +52,31 @@ int is_ppc_end(uint32_t * rawbuf, int bits, int endian){
 // unsigned int, char *, size_t, int, int, size_t
 // Generate all the PowerPC gadgets
 gadget_list * generate_powerpc(unsigned long long vma, char * rawbuf, size_t size, int bits, int endian, size_t depth){
-    insn_t * it;
+    cs_insn * it;
     unsigned int i = 0, j = 0;
     uint32_t * ppcbuf = (uint32_t *) rawbuf;
     size_t nsize_ppc = size / 4;
+    size_t dec_count;
 
     for(i = 0; i < nsize_ppc; i++){
         if(is_ppc_end(&ppcbuf[i], bits, endian)){
             insn_list * gadget = NULL;
-            it = disassemble_one(vma + i * 4, (char *)&ppcbuf[i], PPC_INSTR_SIZE, ARCH_powerpc, bits, endian);
-            if(!is_valid_instr(it, ARCH_powerpc)) continue;
+            //it = disassemble_one(vma + i * 4, (char *)&ppcbuf[i], PPC_INSTR_SIZE, ARCH_powerpc, bits, endian);
+            dec_count = cs_disasm_ex(handle, (char *)&ppcbuf[i], PPC_INSTR_SIZE, vma + i * 4, 1, &it); // TODO: error checking
+            if(dec_count != 1) continue;
             prepend_instr(it, &gadget);
             for(j = 1; j < depth; j++){
                 char * iptr = (char *)&ppcbuf[i] - (j * 4);
                 unsigned int nvma = (vma + i * 4) - (j * 4);
                 if(nvma < vma) break;
-                it = disassemble_one(nvma, iptr, PPC_INSTR_SIZE, ARCH_powerpc, bits, endian);
-                if(!is_valid_instr(it, ARCH_powerpc) 
-                        || is_ppc_end((uint32_t *)iptr, bits, endian) 
-                        || is_branch(it, ARCH_powerpc)) break;
+                //it = disassemble_one(nvma, iptr, PPC_INSTR_SIZE, ARCH_powerpc, bits, endian);
+                dec_count = cs_disasm_ex(handle, iptr, PPC_INSTR_SIZE, nvma, 1, &it); // TODO: error checking
+
+                if((dec_count != 1) || is_ppc_end((uint32_t *)iptr, bits, endian)) break;
                 prepend_instr(it, &gadget);
             }
             print_gadgets_list(&gadget);
-            free_all_instrs(&gadget);
+            //free_all_instrs(&gadget);
         }
     }
 
