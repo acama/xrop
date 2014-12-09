@@ -1,0 +1,3 @@
+[submodule "src/libxdisasm"]
+	path = src/libxdisasm
+	url = https://github.com/acama/libxdisasm.git

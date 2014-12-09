@@ -5,12 +5,9 @@ LDFLAGS= -Llibxdisasm/build/lib/ -lxdisasm -lbfd -lopcodes -liberty -lz -ldl
 
 default: all
 
-all: getlib makelib xropbin
+all: makelib xropbin
 
-withstatic: getlib makelibwithstatic xropbin
-
-getlib:
-	test -d libxdisasm || git clone https://github.com/acama/libxdisasm
+withstatic: makelibwithstatic xropbin
 
 makelib:
 	cd libxdisasm && $(MAKE)
