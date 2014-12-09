@@ -7,14 +7,8 @@ default: all
 
 all: makelib xropbin
 
-withstatic: makelibwithstatic xropbin
-
 makelib:
 	cd libxdisasm && $(MAKE)
-	cp libxdisasm/build/lib/libxdisasm.so ../build/lib/libxdisasm.so
-
-makelibwithstatic:
-	cd libxdisasm && $(MAKE) withstatic 
 	cp libxdisasm/build/lib/libxdisasm.so ../build/lib/libxdisasm.so
 
 xropbin: main.o xrop.o x86-gen.o common.o arm-gen.o mips-gen.o ppc-gen.o
@@ -22,4 +16,4 @@ xropbin: main.o xrop.o x86-gen.o common.o arm-gen.o mips-gen.o ppc-gen.o
 
 clean:
 	rm -rf *.o ${APP}
-	rm -rf libxdisasm
+	cd libxdisasm && $(MAKE) clean
