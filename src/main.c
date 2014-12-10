@@ -132,7 +132,7 @@ int handle_execable(char * infile, size_t depth){
         arch = ARCH_powerpc;
         sdepth = PPC_DEFAULT_DEPTH;
     }else{
-        printf("%s: Unsupported architecutre\n", XNAME);
+        printf("%s: Unsupported architecture\n", XNAME);
         return -1;
     }
 
