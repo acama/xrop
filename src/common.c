@@ -108,7 +108,7 @@ int is_branch(insn_t * i, int arch){
 
 
 // insn_t * -> void
-// Print a gadget in a formatted way
+// Print a gadget in a formatted way (with colors)
 void print_gadget(insn_t * ins, int type, int isthumb){
     char * dec = NULL, * ptr = NULL;
     if(!ins){
@@ -139,6 +139,44 @@ void print_gadget(insn_t * ins, int type, int isthumb){
     
     if(type == BEG_OUTPUT || type == SPECIAL_OUTPUT){
         printf("\e[31m%s\n\e[m", ins->decoded_instrs);
+    }else{
+        printf("%s\n", ins->decoded_instrs);
+    }
+
+}
+
+// insn_t * -> void
+// Print a gadget in a formatted way (without colors)
+void print_gadget_wc(insn_t * ins, int type, int isthumb){
+    char * dec = NULL, * ptr = NULL;
+    if(!ins){
+        return;
+    }
+ 
+    dec = ins->decoded_instrs;
+
+    if(type == END_OUTPUT || type == SPECIAL_OUTPUT){
+        if(isthumb)
+            printf("> 1 + %-18p", (void *)ins->vma);
+        else 
+            printf("> %-22p", (void *)ins->vma);
+    }else{
+        if(isthumb)
+            printf("1 + %-20p", (void *)ins->vma);
+        else 
+            printf("%-24p", (void *)ins->vma);
+    }
+
+    // remove uninteresting comments inserted by disassembler
+    if((ptr = strstr(dec, "; <U"))){  // "; <UNPREDICTABLE>"
+        ptr[0] = '\0'; 
+    }
+    if((ptr = strstr(dec, "; u"))){   // "; unpredictable branch in IT block"
+        ptr[0] = '\0'; 
+    }
+    
+    if(type == BEG_OUTPUT || type == SPECIAL_OUTPUT){
+        printf("%s\n", ins->decoded_instrs);
     }else{
         printf("%s\n", ins->decoded_instrs);
     }

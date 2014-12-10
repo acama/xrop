@@ -51,6 +51,7 @@ void print_usage(){
     printf("\t -l (b | e) big or little endian\n");
     printf("\t -e skips <bytes> of header\n");
     printf("\t -a rellocate at given address\n");
+    printf("\t -n disable colors in the output\n");
     printf("\t -h prints this menu\n");
     exit(0);
 }
@@ -189,7 +190,7 @@ int handle_raw(char * infile, size_t hdrlen, int arch, int bits, int endian, uns
 
 int main(int argc, char **argv){
     int opt, endian = 0;
-    int fb = 0, fv = 0, fh = 0, bits = 0, arch = 0, fl = 0, fr = 0, fd = 0;
+    int fb = 0, fv = 0, fh = 0, bits = 0, arch = 0, fl = 0, fr = 0, fd = 0, nc = 0;
     char * bval = NULL;
     char * dval = NULL;
     char * rval = NULL;
@@ -201,7 +202,7 @@ int main(int argc, char **argv){
     unsigned int vma = 0;
     char endianchar = 0;
 
-    while((opt = getopt(argc, argv, "b:r:e:a:vhl:d:")) != -1){
+    while((opt = getopt(argc, argv, "b:r:e:a:vhnl:d:")) != -1){
         switch(opt){
             case 'b':
                 fb = 1;
@@ -230,6 +231,9 @@ int main(int argc, char **argv){
                 break;
             case 'a':
                 aval = optarg;
+                break;
+            case 'n':
+                nc = 1;
                 break;
             default:
             case '?':
