@@ -6,7 +6,8 @@ xrop is a simple tool to generate ROP gadgets. It supports PE, ELF, Mach-O and p
 Build Instructions:
 -------------------
 ```
-git clone --recursive https://github.com/acama/xrop.git
+cd xrop
+git submodule update --init --recursive
 make
 ```
 
