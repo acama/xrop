@@ -144,12 +144,11 @@ void get_children_thumb(thumb_node_t * currnode, char * begptr, char * rawbuf, u
 
     curr = disassemble_one(rvma, nrawbuf, bufsize + 2, ARCH_arm, 16, 0);
     if(is_valid_instr(curr, ARCH_arm) && (curr->instr_size == 2) && !is_branch(curr, ARCH_arm)){
-        leftn = malloc(sizeof(thumb_node_t));
+        leftn = calloc(sizeof(thumb_node_t), 1);
         if(!leftn){
-            perror("malloc");
+            perror("calloc");
             exit(-1);
         }
-        memset(leftn, 0, sizeof(thumb_node_t));
         leftn->insn = curr;
         currnode->left = leftn;
         get_children_thumb(leftn, begptr, nrawbuf, lowervma, bufsize + 2, bits, depth - 1, endian);
@@ -163,12 +162,11 @@ void get_children_thumb(thumb_node_t * currnode, char * begptr, char * rawbuf, u
 
     curr = disassemble_one(rvma, nrawbuf, bufsize + 4, ARCH_arm, 16, 0);
     if(is_valid_instr(curr, ARCH_arm) && (curr->instr_size == 4) && !is_branch(curr, ARCH_arm)){
-        rightn = malloc(sizeof(thumb_node_t));
+        rightn = calloc(sizeof(thumb_node_t), 1);
         if(!rightn){
-            perror("malloc");
+            perror("calloc");
             exit(-1);
         }
-        memset(rightn, 0, sizeof(thumb_node_t));
         rightn->insn = curr;
         currnode->right = rightn;
         get_children_thumb(rightn, begptr, nrawbuf, lowervma, bufsize + 4, bits, depth - 1, endian);
@@ -211,12 +209,11 @@ gadget_list * generate_arm(unsigned long long vma, char * rawbuf, size_t size, i
     // From the Thumb 16 bit endings
     for(i = 0; i < nsize_thm; i++){
         if(is_thumb16_end(&thmbuf[i], bits, endian)){
-            troot = malloc(sizeof(thumb_node_t));
+            troot = calloc(sizeof(thumb_node_t), 1);
             if(!troot){
-                perror("malloc");
+                perror("calloc");
                 exit(-1);
             }
-            memset(troot, 0, sizeof(thumb_node_t));
 
             it = disassemble_one(vma + i * 2, rawbuf + i * 2, nsize_thm - i * 2, ARCH_arm, 16, endian);
             if(!is_valid_instr(it, ARCH_arm)) continue;
