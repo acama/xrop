@@ -1,7 +1,7 @@
 CC=gcc
 APP=../build/xropbin
 CFLAGS= -Wall
-LDFLAGS= -Llibxdisasm/build/lib/ -lxdisasm -lbfd
+LDFLAGS= -Llibxdisasm/build/lib/ -lxdisasm -lbfd -ldl
 
 default: all
 
