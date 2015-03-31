@@ -232,9 +232,6 @@ int main(int argc, char **argv){
             case 'a':
                 aval = optarg;
                 break;
-            case 'n':
-                nc = 1;
-                break;
             default:
             case '?':
                 print_usage();
