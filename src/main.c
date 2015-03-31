@@ -133,7 +133,7 @@ int handle_execable(char * infile, size_t depth){
         arch = ARCH_powerpc;
         sdepth = PPC_DEFAULT_DEPTH;
     }else{
-        printf("%s: Unsupported architecture\n", XNAME);
+        printf("%s: Unsupported architecture %s\n", XNAME, bfdh->xvec->name);
         return -1;
     }
 
@@ -190,7 +190,7 @@ int handle_raw(char * infile, size_t hdrlen, int arch, int bits, int endian, uns
 
 int main(int argc, char **argv){
     int opt, endian = 0;
-    int fb = 0, fv = 0, fh = 0, bits = 0, arch = 0, fl = 0, fr = 0, fd = 0, nc = 0;
+    int fb = 0, fv = 0, fh = 0, bits = 0, arch = 0, fl = 0, fr = 0, fd = 0;
     char * bval = NULL;
     char * dval = NULL;
     char * rval = NULL;
