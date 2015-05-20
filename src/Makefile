@@ -3,7 +3,7 @@ APP=../build/xropbin
 LDFLAGS= -Llibxdisasm/build/lib/ -lxdisasm -ldl
 BINUTILS = libxdisasm/src/binutils-2.25
 BFD = $(BINUTILS)/bfd/
-CFLAGS := -I$(BFD) -I$(BINUTILS)/include -O3 -g -Wall -Werror
+CFLAGS := -I$(BFD) -I$(BINUTILS)/include -O3 -Wall -Werror
 
 default: all
 
