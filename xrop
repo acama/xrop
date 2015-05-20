@@ -1,5 +1,5 @@
-#!/bin/sh
+#!/bin/bash
 
-SCRIPT_DIR=$( dirname "${BASH_SOURCE[0]}" )
+SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
 BUILD_DIR=$SCRIPT_DIR/build
 LD_LIBRARY_PATH=$BUILD_DIR/lib/ $BUILD_DIR/xropbin "$@"
