@@ -21,8 +21,8 @@
 
 #define PACKAGE 1
 #define PACKAGE_VERSION 1
-#include <bfd.h>
-#include <dis-asm.h>
+#include "bfd.h"
+#include "dis-asm.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -86,7 +86,7 @@ int handle_execable(char * infile, size_t depth){
     asection * section;
     enum bfd_architecture barch;
     unsigned long mach;
-    int arch, bits;
+    int arch, bits = 0;
     int endian = 0;
     size_t sdepth = depth;
 

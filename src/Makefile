@@ -1,7 +1,9 @@
 CC=gcc
 APP=../build/xropbin
-CFLAGS= -Wall
-LDFLAGS= -Llibxdisasm/build/lib/ -lxdisasm -lbfd -ldl
+LDFLAGS= -Llibxdisasm/build/lib/ -lxdisasm -ldl
+BINUTILS = libxdisasm/src/binutils-2.25
+BFD = $(BINUTILS)/bfd/
+CFLAGS := -I$(BFD) -I$(BINUTILS)/include -O3 -g -Wall -Werror
 
 default: all
 
