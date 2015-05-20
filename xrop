@@ -1,3 +1,5 @@
 #!/bin/sh
 
-LD_LIBRARY_PATH=build/lib/ build/xropbin "$@"
+SCRIPT_DIR=$( dirname "${BASH_SOURCE[0]}" )
+BUILD_DIR=$SCRIPT_DIR/build
+LD_LIBRARY_PATH=$BUILD_DIR/lib/ $BUILD_DIR/xropbin "$@"
