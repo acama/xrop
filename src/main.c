@@ -172,7 +172,10 @@ int handle_raw(char * infile, size_t hdrlen, int arch, int bits, int endian, uns
         data = malloc (datalen);
         if (data)
         {
-            fread (data, 1, datalen, fp);
+            if(fread (data, 1, datalen, fp) != datalen){
+                perror("fread");
+                exit(-1);
+            }
         }else{
             perror("malloc");
             exit(-1);
