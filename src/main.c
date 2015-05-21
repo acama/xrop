@@ -59,7 +59,7 @@ void print_usage(){
 
 // bfd *, asection *, int, unsigned long, bits, endian, depth -> void
 // Get the raw bytes of the section and pass it to the gadget search function
-void handle_section(bfd * bfdh, asection * section, int arch, unsigned long mach, int bits, int endian, size_t depth, char * re){
+void handle_section(bfd * bfdh, asection * section, config_t * cfg){
     bfd_size_type size;
     char * rawbytes;
 
@@ -75,8 +75,9 @@ void handle_section(bfd * bfdh, asection * section, int arch, unsigned long mach
         fprintf(stderr, "%s: Couldn't read section data\n", XNAME);
         exit(-1);
     }
-    
-    gadget_search(bfd_section_vma(bfdh, section), rawbytes, size, arch, bits, endian, depth, re);
+   
+    cfg->vma = bfd_section_vma(bfdh, section);
+    gadget_search(rawbytes, size, cfg);
     free(rawbytes);
 }
 
@@ -90,6 +91,7 @@ int handle_execable(char * infile, size_t depth, char * re){
     int arch, bits = 0;
     int endian = 0;
     size_t sdepth = depth;
+    config_t cfg = {0};
 
     bfdh = bfd_openr(infile, NULL);
     if(!bfdh){
@@ -143,7 +145,14 @@ int handle_execable(char * infile, size_t depth, char * re){
         if((flags & SEC_LOAD) && (flags & SEC_CODE)){
             printf("\n");
             printf("\e[32m -> [ %s ]\e[m\n", bfd_section_name(bfdh, section));
-            handle_section(bfdh, section, arch, mach, bits, endian, sdepth, re);
+
+            cfg.arch = arch;
+            cfg.bits = bits;
+            cfg.endian = endian;
+            cfg.depth = sdepth;
+            cfg.re = re;
+
+            handle_section(bfdh, section, &cfg);
         }
     }
 
@@ -152,7 +161,7 @@ int handle_execable(char * infile, size_t depth, char * re){
 
 // char *, size_t, int, int, int, unsigned int, size_t
 // Open given file and handle as raw binary
-int handle_raw(char * infile, size_t hdrlen, int arch, int bits, int endian, unsigned long long vma, size_t depth, char * re){
+int handle_raw(char * infile, size_t hdrlen, config_t * cfg){
     FILE * fp = NULL;
     size_t datalen = 0;
     char * data = NULL;
@@ -187,7 +196,7 @@ int handle_raw(char * infile, size_t hdrlen, int arch, int bits, int endian, uns
         exit(-1);
     }
 
-    gadget_search(vma, data, datalen, arch, bits, endian, depth, re);
+    gadget_search(data, datalen, cfg);
     free(data);
     return 0;
 }
@@ -204,8 +213,9 @@ int main(int argc, char **argv){
     char * re = NULL;
     size_t hdrlen = 0;
     size_t depth = DEFAULT_DEPTH;
-    unsigned int vma = 0;
+    unsigned long long vma = 0;
     char endianchar = 0;
+    config_t cfg = {0};
 
     while((opt = getopt(argc, argv, "b:r:e:a:vhnl:d:s:")) != -1){
         switch(opt){
@@ -323,7 +333,14 @@ int main(int argc, char **argv){
     }
 
     if(fr){
-        handle_raw(infile, hdrlen, arch, bits, endian, vma, depth, re);
+        cfg.vma = vma;
+        cfg.arch = arch;
+        cfg.bits = bits;
+        cfg.endian = endian;
+        cfg.depth = depth;
+        cfg.re = re;
+
+        handle_raw(infile, hdrlen, &cfg);
     }else{
         handle_execable(infile, depth, re);
     }
