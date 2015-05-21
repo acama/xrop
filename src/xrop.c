@@ -32,17 +32,17 @@
 
 // unsigned int, char *, size_t, int, int, int, size_t
 // Search for gadgets in given buffer
-gadget_list * gadget_search(unsigned long long vma, char * rawbuf, size_t size, int arch, int bits, int endian, size_t depth){
+gadget_list * gadget_search(unsigned long long vma, char * rawbuf, size_t size, int arch, int bits, int endian, size_t depth, char * re){
     gadget_list * l = NULL;
 
     if(arch == ARCH_x86){
-        l = generate_x86(vma, rawbuf, size, bits, depth); 
+        l = generate_x86(vma, rawbuf, size, bits, depth, re); 
     }else if(arch == ARCH_arm){
-        l = generate_arm(vma, rawbuf, size, bits, endian, depth);
+        l = generate_arm(vma, rawbuf, size, bits, endian, depth, re);
     }else if(arch == ARCH_powerpc){ 
-        l = generate_powerpc(vma, rawbuf, size, bits, endian, depth);
+        l = generate_powerpc(vma, rawbuf, size, bits, endian, depth, re);
     }else if(arch == ARCH_mips){ 
-        l = generate_mips(vma, rawbuf, size, bits, endian, depth);
+        l = generate_mips(vma, rawbuf, size, bits, endian, depth, re);
     }
 
     return l;

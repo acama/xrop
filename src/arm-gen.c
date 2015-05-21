@@ -27,7 +27,7 @@
 
 // thumb_node_t *, insn_t *, size_t, int
 // Recursively print the gadgets in the Thumb binary tree
-void r_print_gadgets_bt(thumb_node_t * n, insn_t * path[], size_t depth, int pathlen){
+void r_print_gadgets_bt(thumb_node_t * n, insn_t * path[], size_t depth, int pathlen, char * re){
     thumb_node_t * tmp = NULL;   
 
     if(n == NULL) return;
@@ -38,26 +38,26 @@ void r_print_gadgets_bt(thumb_node_t * n, insn_t * path[], size_t depth, int pat
     }
 
     if((n->left == NULL) && (n->right == NULL)){
-        print_path(path, pathlen, THUMB_INSTR);
+        print_path(path, pathlen, THUMB_INSTR, re);
     }
 
     tmp = n->left;
     if(tmp){
-        r_print_gadgets_bt(tmp, path, depth - 1, pathlen + 1);
+        r_print_gadgets_bt(tmp, path, depth - 1, pathlen + 1, re);
     }
     
     tmp = n->right;
     if(tmp){
-        r_print_gadgets_bt(tmp, path, depth - 1, pathlen + 1);
+        r_print_gadgets_bt(tmp, path, depth - 1, pathlen + 1, re);
     }
 
 }
 
 // thumb_node_t *, size_t
 // Print the gadgets in the Thumb binary tree
-void print_gadgets_bt(thumb_node_t * n, size_t depth){
+void print_gadgets_bt(thumb_node_t * n, size_t depth, char * re){
     insn_t * path[MAX_GADGET_LEN] = {0};
-    r_print_gadgets_bt(n, path, depth, 0);
+    r_print_gadgets_bt(n, path, depth, 0, re);
 }
 
 
@@ -177,7 +177,7 @@ void get_children_thumb(thumb_node_t * currnode, char * begptr, char * rawbuf, u
 
 // unsigned int, char *, size_t, int, int, size_t
 // Generate all the ARM gadgets
-gadget_list * generate_arm(unsigned long long vma, char * rawbuf, size_t size, int bits, int endian, size_t depth){
+gadget_list * generate_arm(unsigned long long vma, char * rawbuf, size_t size, int bits, int endian, size_t depth, char * re){
     insn_t * it;
     unsigned int i = 0, j = 0;
     uint32_t * armbuf = (uint32_t *) rawbuf;
@@ -203,7 +203,7 @@ gadget_list * generate_arm(unsigned long long vma, char * rawbuf, size_t size, i
                         || is_branch(it, ARCH_arm)) break;
                 prepend_instr(it, &gadget);
             }
-            print_gadgets_list(&gadget);
+            print_gadgets_list(&gadget, re);
             free_all_instrs(&gadget);
         }
     }
@@ -223,7 +223,7 @@ gadget_list * generate_arm(unsigned long long vma, char * rawbuf, size_t size, i
             troot->insn = it;
             get_children_thumb(troot, rawbuf, rawbuf + i * 2, vma, nsize_thm - i * 2, bits, depth, endian);
 
-            print_gadgets_bt(troot, depth);
+            print_gadgets_bt(troot, depth, re);
             //print_gadgets_trie(retrootn, depth);
         }
     } 

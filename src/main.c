@@ -44,7 +44,7 @@ void print_version(){
 
 // Print usage
 void print_usage(){
-    printf("Usage: xrop [-r arch] [-b bits] [-e bytes] [-l endian] [-a relocaddr] [-v] [-h] inputfile\n");
+    printf("Usage: xrop [-r arch] [-b bits] [-e bytes] [-l endian] [-a relocaddr] [-s regex] [-v] [-h] inputfile\n");
     printf("\t -b (16 | 32 | 64) sets the processor mode\n");
     printf("\t -r (arm | mips | powerpc | x86) raw binary file of given architecture\n");
     printf("\t -v displays the version number\n");
@@ -52,13 +52,14 @@ void print_usage(){
     printf("\t -e skips <bytes> of header\n");
     printf("\t -a rellocate at given address\n");
     printf("\t -n disable colors in the output\n");
+    printf("\t -s filter gadgets with <regex>\n");
     printf("\t -h prints this menu\n");
     exit(0);
 }
 
 // bfd *, asection *, int, unsigned long, bits, endian, depth -> void
 // Get the raw bytes of the section and pass it to the gadget search function
-void handle_section(bfd * bfdh, asection * section, int arch, unsigned long mach, int bits, int endian, size_t depth){
+void handle_section(bfd * bfdh, asection * section, int arch, unsigned long mach, int bits, int endian, size_t depth, char * re){
     bfd_size_type size;
     char * rawbytes;
 
@@ -75,13 +76,13 @@ void handle_section(bfd * bfdh, asection * section, int arch, unsigned long mach
         exit(-1);
     }
     
-    gadget_search(bfd_section_vma(bfdh, section), rawbytes, size, arch, bits, endian, depth);
+    gadget_search(bfd_section_vma(bfdh, section), rawbytes, size, arch, bits, endian, depth, re);
     free(rawbytes);
 }
 
 // char *, size_t -> int
 // Open the given executable file, handle each executable section
-int handle_execable(char * infile, size_t depth){
+int handle_execable(char * infile, size_t depth, char * re){
     bfd * bfdh;
     asection * section;
     enum bfd_architecture barch;
@@ -141,8 +142,8 @@ int handle_execable(char * infile, size_t depth){
         flagword flags = bfd_get_section_flags(bfdh, section);
         if((flags & SEC_LOAD) && (flags & SEC_CODE)){
             printf("\n");
-            printf("\e[32m[ %s ]\e[m\n", bfd_section_name(bfdh, section));
-            handle_section(bfdh, section, arch, mach, bits, endian, sdepth);
+            printf("\e[32m -> [ %s ]\e[m\n", bfd_section_name(bfdh, section));
+            handle_section(bfdh, section, arch, mach, bits, endian, sdepth, re);
         }
     }
 
@@ -151,7 +152,7 @@ int handle_execable(char * infile, size_t depth){
 
 // char *, size_t, int, int, int, unsigned int, size_t
 // Open given file and handle as raw binary
-int handle_raw(char * infile, size_t hdrlen, int arch, int bits, int endian, unsigned long long vma, size_t depth){
+int handle_raw(char * infile, size_t hdrlen, int arch, int bits, int endian, unsigned long long vma, size_t depth, char * re){
     FILE * fp = NULL;
     size_t datalen = 0;
     char * data = NULL;
@@ -186,7 +187,7 @@ int handle_raw(char * infile, size_t hdrlen, int arch, int bits, int endian, uns
         exit(-1);
     }
 
-    gadget_search(vma, data, datalen, arch, bits, endian, depth);
+    gadget_search(vma, data, datalen, arch, bits, endian, depth, re);
     free(data);
     return 0;
 }
@@ -200,12 +201,13 @@ int main(int argc, char **argv){
     char * eval = NULL;
     char * aval = NULL;
     char * infile = NULL;
+    char * re = NULL;
     size_t hdrlen = 0;
     size_t depth = DEFAULT_DEPTH;
     unsigned int vma = 0;
     char endianchar = 0;
 
-    while((opt = getopt(argc, argv, "b:r:e:a:vhnl:d:")) != -1){
+    while((opt = getopt(argc, argv, "b:r:e:a:vhnl:d:s:")) != -1){
         switch(opt){
             case 'b':
                 fb = 1;
@@ -234,6 +236,9 @@ int main(int argc, char **argv){
                 break;
             case 'a':
                 aval = optarg;
+                break;
+            case 's':
+                re = optarg;
                 break;
             default:
             case '?':
@@ -318,9 +323,9 @@ int main(int argc, char **argv){
     }
 
     if(fr){
-        handle_raw(infile, hdrlen, arch, bits, endian, vma, depth);
+        handle_raw(infile, hdrlen, arch, bits, endian, vma, depth, re);
     }else{
-        handle_execable(infile, depth);
+        handle_execable(infile, depth, re);
     }
 
     return 0;

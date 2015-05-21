@@ -22,7 +22,40 @@
 #include "../include/xrop.h"
 #include <stdio.h>
 #include <string.h>
+#include <regex.h>
 
+// char *, char * -> int
+// perform regex matching on given string with pattern
+int reg_match(char * str, char * re){
+    regex_t regex;
+    int reti;
+    //char msgbuf[100];
+
+    // Compile regular expression
+    reti = regcomp(&regex, re, 0);
+    if( reti ){ fprintf(stderr, "Could not compile regex\n"); exit(1); }
+
+    // Execute regular expression
+    reti = regexec(&regex, str, 0, NULL, 0);
+
+    /*
+    if( !reti ){
+        puts("Match");
+    }
+    else if( reti == REG_NOMATCH ){
+        puts("No match");
+    }
+    else{
+        regerror(reti, &regex, msgbuf, sizeof(msgbuf));
+        fprintf(stderr, "Regex match failed: %s\n", msgbuf);
+        exit(1);
+    }*/
+
+    // Free compiled regular expression if you want to use the regex_t again
+    regfree(&regex);
+
+    return reti;
+}
 
 
 // insn_t, int
@@ -184,9 +217,20 @@ void print_gadget_wc(insn_t * ins, int type, int isthumb){
 }
 
 // insn_list ** -> void
-// Print all the instructions in the list
-void print_gadgets_list(insn_list **ilist){
+// Print all the instructions in the list with the given regex
+void print_gadgets_list(insn_list **ilist, char * re){
     insn_list * l = *ilist;
+    int acc = 0;
+
+    if(re){
+        while(l){
+           acc |= !reg_match(l->instr->decoded_instrs, re); 
+           l = l->next;
+        }
+        if(!acc) return;
+    }
+
+    l = *ilist;
 
     if(l){
         if(!l->next) print_gadget(l->instr, SPECIAL_OUTPUT, NORM_INSTR);
@@ -205,11 +249,20 @@ void print_gadgets_list(insn_list **ilist){
 
 // insn_t *, int, int
 // Print the path with the given output option
-void print_path(insn_t * path[], int pathlen, int output){
+void print_path(insn_t * path[], int pathlen, int output, char * re){
     int i = 0;
+    int acc = 0;
+
 
     if(pathlen == 0){
         return;
+    }
+
+    if(re){
+        for(i = pathlen; i >= 0; i--){
+            acc |= !reg_match(path[i]->decoded_instrs, re);
+        }
+        if(!acc) return;
     }
 
     for(i = pathlen; i >= 0; i--){
@@ -220,4 +273,3 @@ void print_path(insn_t * path[], int pathlen, int output){
 
     printf("_______________________________________________________________\n\n");
 }
-
