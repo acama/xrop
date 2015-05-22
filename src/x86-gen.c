@@ -33,7 +33,7 @@ int is_x86_end(char * rawbuf, int bits){
         return 0;
 
     acc = ((unsigned short *)rawbuf)[0] == (unsigned short)0x80cd // int 80h 
-          ((unsigned short *)rawbuf)[0] == (unsigned short)0x340f // sysenter
+            || ((unsigned short *)rawbuf)[0] == (unsigned short)0x340f // sysenter
             || rawbuf[0] == (char) 0xc3; // ret
     
     if(bits == 64) 
