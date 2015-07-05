@@ -26,15 +26,23 @@
 
 // char *, int
 // Check if the given buffer is pointing to gadget-end sequence
-int is_x86_end(char * rawbuf, int bits){
+int is_x86_end(char * rawbuf, size_t max_size, int bits){
     int acc;
 
     if(!rawbuf)
         return 0;
 
-    acc = ((unsigned short *)rawbuf)[0] == (unsigned short)0x80cd // int 80h 
-            || ((unsigned short *)rawbuf)[0] == (unsigned short)0x340f // sysenter
-            || rawbuf[0] == (char) 0xc3; // ret
+    acc = rawbuf[0] == (char) 0xc3; // ret
+
+    if(max_size >= 2)
+        acc |= ((unsigned short *)rawbuf)[0] == (unsigned short)0x80cd  // int 80h
+            || ((unsigned short *)rawbuf)[0] == (unsigned short)0x340f; // sysenter
+
+    // glibc's general syscall system (normally goes to the VDSO)
+    //  call [gs:0x10]
+    const unsigned char call_gs10[] = { 0x65, 0xFF, 0x15, 0x10, 0x00, 0x00, 0x00 };
+    if(bits == 32 && max_size >= sizeof(call_gs10))
+        acc |= (memcmp(rawbuf, call_gs10, sizeof(call_gs10)) == 0);
     
     if(bits == 64) 
         acc |= ((unsigned short *) rawbuf)[0] == 0x050f; // syscall
@@ -141,7 +149,7 @@ gadget_list * generate_x86(unsigned long long vma, char * rawbuf, size_t size, i
     
     // Find all ret instructions
     for(; i < size; i++){
-        if(is_x86_end((rawbuf + i), bits)){
+        if(is_x86_end((rawbuf + i), size - i, bits)){
             retrootn = malloc(sizeof(x86_node_t));
             if(!retrootn){
                 perror("malloc");
