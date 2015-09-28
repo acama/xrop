@@ -24,6 +24,12 @@
 #include <string.h>
 #include <regex.h>
 
+/* Bitfield n...m (in 32 bit value). */
+#define BITS(n, m) (((0xffffffffU << (31 - n)) >> (31 - n + m)) << m)
+
+/* Bitfield n...m (in 64 bit value). */
+#define BITS64(n, m) (((0xffffffffffffffffU << (63 - n)) >> (63 - n + m)) << m)
+
 // char *, char * -> int
 // perform regex matching on given string with pattern
 int reg_match(char * str, char * re){
@@ -37,19 +43,6 @@ int reg_match(char * str, char * re){
 
     // Execute regular expression
     reti = regexec(&regex, str, 0, NULL, 0);
-
-    /*
-    if( !reti ){
-        puts("Match");
-    }
-    else if( reti == REG_NOMATCH ){
-        puts("No match");
-    }
-    else{
-        regerror(reti, &regex, msgbuf, sizeof(msgbuf));
-        fprintf(stderr, "Regex match failed: %s\n", msgbuf);
-        exit(1);
-    }*/
 
     // Free compiled regular expression if you want to use the regex_t again
     regfree(&regex);
