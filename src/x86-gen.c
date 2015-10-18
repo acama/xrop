@@ -70,12 +70,11 @@ void get_children_x86(x86_node_t * currnode, char * begptr, char * rawbuf, unsig
         curr = disassemble_one(rvma, nrawbuf, bufsize + i, ARCH_x86, bits, 0);
         if(is_branch(curr, ARCH_x86)) break;
         if(is_valid_instr(curr, ARCH_x86) && (curr->instr_size == i)){
-            x86_node_t * tmpn = malloc(sizeof(x86_node_t));
+            x86_node_t * tmpn = calloc(sizeof(x86_node_t), 1);
             if(!tmpn){
-                perror("malloc");
+                perror("calloc");
                 exit(-1);
             }
-            memset(tmpn, 0, sizeof(x86_node_t));
             tmpn->insn = curr;
             currnode->children[i] = tmpn;
             get_children_x86(tmpn, begptr, nrawbuf, lowervma, bufsize + i, bits, depth - 1);
@@ -142,12 +141,11 @@ gadget_list * generate_x86(unsigned long long vma, char * rawbuf, size_t size, i
     // Find all ret instructions
     for(; i < size; i++){
         if(is_x86_end((rawbuf + i), bits)){
-            retrootn = malloc(sizeof(x86_node_t));
+            retrootn = calloc(sizeof(x86_node_t), 1);
             if(!retrootn){
-                perror("malloc");
+                perror("calloc");
                 exit(-1);
             }
-            memset(retrootn, 0, sizeof(x86_node_t));
 
             rvma = vma + i;
             it = disassemble_one(rvma, rawbuf + i, X86MAX_INSTR_SIZE, ARCH_x86, bits, 0);
