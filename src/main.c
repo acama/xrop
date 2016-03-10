@@ -20,7 +20,7 @@
 */
 
 #define PACKAGE 1
-#define PACKAGE_VERSION 1
+#define PACKAGE_VERSION 1.1
 #include "bfd.h"
 #include "dis-asm.h"
 #include <stdio.h>
@@ -30,11 +30,17 @@
 #include <string.h>
 #include <limits.h>
 #include <malloc.h>
+#include "elf/external.h"
+#include "elf/internal.h"
+#include "elf-bfd.h"
+
 #include "libxdisasm/include/xdisasm.h"
 #include "../include/xrop.h"
 
 #define VERSION "1.1"
 #define XNAME "xrop"
+
+#define elf_tdata(bfd)		((bfd) -> tdata.elf_obj_data)
 
 // Print version
 void print_version(){
@@ -81,6 +87,20 @@ void handle_section(bfd * bfdh, asection * section, config_t * cfg){
     free(rawbytes);
 }
 
+int in_exec_range(seginfo_t *info, size_t infosize, unsigned long long start, unsigned long long end){
+    unsigned int i;
+
+    for(i = 0; i < infosize; i++){
+        if(info[i].isset){
+            if(start >= info[i].start_addr && end < info[i].end_addr){
+                return 1;    
+            }
+        }
+    }
+
+    return 0;
+}
+
 // char *, size_t -> int
 // Open the given executable file, handle each executable section
 int handle_execable(char * infile, size_t depth, char * re){
@@ -92,6 +112,9 @@ int handle_execable(char * infile, size_t depth, char * re){
     int endian = 0;
     size_t sdepth = depth;
     config_t cfg = {0};
+    Elf_Internal_Phdr *p;
+    seginfo_t * exec_segments = NULL; // list of executable segments only used with ELF
+    size_t num_segments = 0;
 
     bfdh = bfd_openr(infile, NULL);
     if(!bfdh){
@@ -140,9 +163,42 @@ int handle_execable(char * infile, size_t depth, char * re){
         return -1;
     }
 
+    p = elf_tdata(bfdh)->phdr;
+    // if we are an ELF
+    if(p != NULL){
+        unsigned int i;
+        num_segments = elf_elfheader (bfdh)->e_phnum;
+        exec_segments = calloc(num_segments, sizeof(seginfo_t));   // list of segments
+        for(i = 0; i < num_segments; i++, p++){
+            if(p->p_flags & PF_X){
+                exec_segments[i].start_addr = p->p_vaddr; 
+                exec_segments[i].end_addr = p->p_vaddr + p->p_memsz; 
+                exec_segments[i].isset = 1; 
+            }
+        }
+    }
+
     for(section = bfdh->sections; section; section = section->next){
         flagword flags = bfd_get_section_flags(bfdh, section);
-        if((flags & SEC_LOAD) && (flags & SEC_CODE)){
+        unsigned long long cur_vma = bfd_section_vma(bfdh, section);
+        bfd_size_type cur_size = bfd_section_size(bfdh, section);
+        unsigned long long cur_vma_end = cur_vma + cur_size;
+        if(p != NULL && num_segments != 0){
+            // means this is an ELF so we only care about segments
+            if(in_exec_range(exec_segments, num_segments, cur_vma, cur_vma_end)){
+                printf("\n");
+                printf("\e[32m -> [ %s ]\e[m\n", bfd_section_name(bfdh, section));
+
+                cfg.arch = arch;
+                cfg.bits = bits;
+                cfg.endian = endian;
+                cfg.depth = sdepth;
+                cfg.re = re;
+
+                handle_section(bfdh, section, &cfg);
+            }
+        }else if((flags & SEC_LOAD) && (flags & SEC_CODE)){
+            // some other file format
             printf("\n");
             printf("\e[32m -> [ %s ]\e[m\n", bfd_section_name(bfdh, section));
 
@@ -156,6 +212,7 @@ int handle_execable(char * infile, size_t depth, char * re){
         }
     }
 
+    free(exec_segments);
     return 0;
 }
 
