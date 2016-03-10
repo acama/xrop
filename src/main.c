@@ -37,7 +37,7 @@
 #include "libxdisasm/include/xdisasm.h"
 #include "../include/xrop.h"
 
-#define VERSION "1.1"
+#define VERSION "1.2"
 #define XNAME "xrop"
 
 #define elf_tdata(bfd)		((bfd) -> tdata.elf_obj_data)
