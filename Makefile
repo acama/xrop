@@ -8,7 +8,7 @@ xrp:
 
 install: xrp
 	mkdir -p $(INSTALL_DIR)
-	cp -r build $(INSTALL_DIR)
+	cp -r lib $(INSTALL_DIR)
 	cp xrop $(INSTALL_DIR)
 	ln -sf /opt/xrop/xrop /usr/local/bin/
 
