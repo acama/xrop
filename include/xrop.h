@@ -71,6 +71,14 @@ typedef struct config_t{
     char * re;
 }config_t;
 
+// info on segment start
+// and end address
+typedef struct seginfo_t{
+    unsigned char isset;
+    unsigned long long start_addr;
+    unsigned long long end_addr;
+}seginfo_t;
+
 gadget_list * gadget_search(char * rawbuf, size_t size, config_t * cfg);
 
 #endif

@@ -34,10 +34,44 @@ int is_x86_end(char * rawbuf, int bits){
 
     acc = ((unsigned short *)rawbuf)[0] == (unsigned short)0x80cd // int 80h 
             || ((unsigned short *)rawbuf)[0] == (unsigned short)0x340f // sysenter
-            || rawbuf[0] == (char) 0xc3; // ret
+            || rawbuf[0] == (char) 0xc3 // ret
+            || (((((unsigned short *)rawbuf)[0] & 0xF0FF) == 0xD0FF) && 
+                    ((((unsigned short *)rawbuf)[0] & 0xFFFF) <= 0xD7FF)) // call reg
+            || (((((unsigned short *)rawbuf)[0] & 0xF0FF) == 0x10FF) 
+                    && ((((unsigned short *)rawbuf)[0] & 0xFFFF) <= 0x17FF)) // call [reg]
+            || (((((unsigned short *)rawbuf)[0] & 0xF0FF) == 0x50FF) 
+                    && ((((unsigned short *)rawbuf)[0] & 0xFFFF) <= 0x57FF)) // call [reg + 8]
+            || (((((unsigned short *)rawbuf)[0] & 0xF0FF) == 0x90FF) 
+                    && ((((unsigned short *)rawbuf)[0] & 0xFFFF) <= 0x97FF)) // call [reg + 32]
+            || (((((unsigned short *)rawbuf)[0] & 0xF0FF) == 0xE0FF) && 
+                    ((((unsigned short *)rawbuf)[0] & 0xFFFF) <= 0xE7FF)) // jmp reg
+            || (((((unsigned short *)rawbuf)[0] & 0xF0FF) == 0x20FF) 
+                    && ((((unsigned short *)rawbuf)[0] & 0xFFFF) <= 0x27FF)) // jmp [reg]
+            || (((((unsigned short *)rawbuf)[0] & 0xF0FF) == 0x60FF) 
+                    && ((((unsigned short *)rawbuf)[0] & 0xFFFF) <= 0x67FF)) // jmp [reg + 8]
+            || (((((unsigned short *)rawbuf)[0] & 0xF0FF) == 0xA0FF) 
+                    && ((((unsigned short *)rawbuf)[0] & 0xFFFF) <= 0xA7FF)); // jmp [reg + 32]
     
-    if(bits == 64) 
-        acc |= ((unsigned short *) rawbuf)[0] == 0x050f; // syscall
+    if(bits == 64){
+        acc |= ((unsigned short *) rawbuf)[0] == 0x050f // syscall
+            || (((((unsigned short *)rawbuf)[0] & 0xF0FFFF) == 0xD0FF41) 
+                    && ((((unsigned short *)rawbuf)[0] & 0xFFFFFF) <= 0xD7FF41)) // call re
+            || (((((unsigned short *)rawbuf)[0] & 0xF0FFFF) == 0x10FF41) 
+                    && ((((unsigned short *)rawbuf)[0] & 0xFFFFFF) <= 0x17FF41) // call [reg]
+                    && ((((unsigned short *)rawbuf)[0] & 0xFFFFFF) != 0x15FF41)) // this opcode one is invalid
+            || (((((unsigned short *)rawbuf)[0] & 0xF0FFFF) == 0x50FF41) 
+                    && ((((unsigned short *)rawbuf)[0] & 0xFFFFFF) <= 0x57FF41)) // call [reg + 8]
+            || (((((unsigned short *)rawbuf)[0] & 0xF0FFFF) == 0x90FF41) 
+                    && ((((unsigned short *)rawbuf)[0] & 0xFFFFFF) <= 0x97FF41)) // call [reg + 32]
+            || (((((unsigned short *)rawbuf)[0] & 0xF0FFFF) == 0xE0FF41) && 
+                    ((((unsigned short *)rawbuf)[0] & 0xFFFFFF) <= 0xE7FF41)) // jmp reg
+            || (((((unsigned short *)rawbuf)[0] & 0xF0FFFF) == 0x20FF41) 
+                    && ((((unsigned short *)rawbuf)[0] & 0xFFFFFF) <= 0x27FF41)) // jmp [reg]
+            || (((((unsigned short *)rawbuf)[0] & 0xF0FFFF) == 0x60FF41) 
+                    && ((((unsigned short *)rawbuf)[0] & 0xFFFFFF) <= 0x67FF41)) // jmp [reg + 8]
+            || (((((unsigned short *)rawbuf)[0] & 0xF0FFFF) == 0xA0FF41) 
+                    && ((((unsigned short *)rawbuf)[0] & 0xFFFFFF) <= 0xA7FF41)); // jmp [reg + 32]
+    }
 
     return acc;
 }

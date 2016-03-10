@@ -137,23 +137,39 @@ int is_branch(insn_t * i, int arch){
 // Print a gadget in a formatted way (with colors)
 void print_gadget(insn_t * ins, int type, int isthumb){
     char * dec = NULL, * ptr = NULL;
+    size_t i, l;
+    char * opcode_str = NULL;
+
     if(!ins){
         return;
     }
  
     dec = ins->decoded_instrs;
+    l = ins->instr_size;
+    opcode_str = calloc(1, l);
+    if(!opcode_str){
+        perror("calloc opcode_str"); 
+        exit(-1);
+    }
 
     if(type == END_OUTPUT || type == SPECIAL_OUTPUT){
         if(isthumb)
-            printf("\e[34;1m> 1 + %-18p\e[m", (void *)ins->vma);
+            printf("\e[34;1m> 1 + %-12p\e[m", (void *)ins->vma);
         else 
-            printf("\e[34;1m> %-22p\e[m", (void *)ins->vma);
+            printf("\e[34;1m> %-16p\e[m", (void *)ins->vma);
     }else{
         if(isthumb)
-            printf("\e[34m1 + %-20p\e[m", (void *)ins->vma);
+            printf("\e[34m1 + %-14p\e[m", (void *)ins->vma);
         else 
-            printf("\e[34m%-24p\e[m", (void *)ins->vma);
+            printf("\e[34m%-18p\e[m", (void *)ins->vma);
     }
+
+    for(i = 0; i < l; i++){
+        sprintf(opcode_str + i * 2, "%02X", (unsigned char)(ins->opcodes[i]));
+        ptr += 2;
+    }
+
+    printf("%-16s", opcode_str);
 
     // remove uninteresting comments inserted by disassembler
     if((ptr = strstr(dec, "; <U"))){  // "; <UNPREDICTABLE>"
