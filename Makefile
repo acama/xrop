@@ -3,7 +3,7 @@ default: xrp
 INSTALL_DIR = /opt/xrop
 
 xrp:
-	mkdir -p build/lib
+	mkdir -p lib
 	cd src && $(MAKE)
 
 install: xrp
@@ -12,6 +12,10 @@ install: xrp
 	cp xrop $(INSTALL_DIR)
 	ln -sf /opt/xrop/xrop /usr/local/bin/
 
+uninstall:
+	rm -rf /opt/xrop
+	rm /usr/local/bin/xrop
+
 clean:
 	cd  src && $(MAKE) clean
-	rm -rf build
+	rm -rf lib

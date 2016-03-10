@@ -44,6 +44,9 @@
 #define THUMB_INSTR 1
 #define NORM_INSTR 0 
 
+// maximum allowed regexes
+#define MAX_REGEX 16
+
 typedef insn_list ropgadget;
 
 typedef struct gadget_list{
@@ -68,7 +71,7 @@ typedef struct config_t{
     int bits;
     int endian;
     size_t depth;
-    char * re;
+    char ** re;
 }config_t;
 
 // info on segment start

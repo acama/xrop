@@ -50,7 +50,7 @@ int is_ppc_end(uint32_t * rawbuf, int bits, int endian){
 
 // unsigned int, char *, size_t, int, int, size_t
 // Generate all the PowerPC gadgets
-gadget_list * generate_powerpc(unsigned long long vma, char * rawbuf, size_t size, int bits, int endian, size_t depth, char * re){
+gadget_list * generate_powerpc(unsigned long long vma, char * rawbuf, size_t size, int bits, int endian, size_t depth, char **re){
     insn_t * it;
     unsigned int i = 0, j = 0;
     uint32_t * ppcbuf = (uint32_t *) rawbuf;
