@@ -119,7 +119,7 @@ void get_children_x86(x86_node_t * currnode, char * begptr, char * rawbuf, unsig
 
 // x86_node_t *, insn_t *, size_t, int
 // Recursively print the gadgets in the x86 trie
-void r_print_gadgets_trie(x86_node_t * n, insn_t * path[], size_t depth, int pathlen, char * re){
+void r_print_gadgets_trie(x86_node_t * n, insn_t * path[], size_t depth, int pathlen, char ** re){
     int i = 0;
     x86_node_t * tmp = NULL;   
     int acc = 1;
@@ -138,20 +138,6 @@ void r_print_gadgets_trie(x86_node_t * n, insn_t * path[], size_t depth, int pat
         }
     }
 
-    /*
-    if(acc){
-        if(re){
-            for(i = pathlen; i >= 0; i--){
-                acc |= !reg_match(path[i]->decoded_instrs, re);
-            }
-            if(acc){
-                print_path(path, pathlen, NORM_INSTR);
-            }
-        }else{
-            print_path(path, pathlen, NORM_INSTR);
-        }
-    }
-    */
     if(acc){
         print_path(path, pathlen, NORM_INSTR, re);
     }
@@ -160,14 +146,14 @@ void r_print_gadgets_trie(x86_node_t * n, insn_t * path[], size_t depth, int pat
 
 // x86_node_t *, size_t
 // Print the gadgets in the x86 trie
-void print_gadgets_trie(x86_node_t * n, size_t depth, char * re){
+void print_gadgets_trie(x86_node_t * n, size_t depth, char ** re){
     insn_t * path[MAX_GADGET_LEN] = {0};
     r_print_gadgets_trie(n, path, depth, 0, re);
 }
 
 // unsigned int, char *, size_t, int, size_t
 // Generate the x86 gadgets in the given buffer
-gadget_list * generate_x86(unsigned long long vma, char * rawbuf, size_t size, int bits, size_t depth, char * re){
+gadget_list * generate_x86(unsigned long long vma, char * rawbuf, size_t size, int bits, size_t depth, char ** re){
     insn_t * it = NULL;
     unsigned long long  i = 0;
     unsigned long long rvma = 0;

@@ -26,6 +26,6 @@
 
 // unsigned int, char *, size_t, int, int, size_t
 // Generate all the PowerPC gadgets
-gadget_list * generate_powerpc(unsigned long long vma, char * rawbuf, size_t size, int bits, int endian, size_t depth, char * re);
+gadget_list * generate_powerpc(unsigned long long vma, char * rawbuf, size_t size, int bits, int endian, size_t depth, char ** re);
 
 #endif

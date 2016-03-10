@@ -37,7 +37,7 @@
 #include "libxdisasm/include/xdisasm.h"
 #include "../include/xrop.h"
 
-#define VERSION "1.2"
+#define VERSION "1.1"
 #define XNAME "xrop"
 
 #define elf_tdata(bfd)		((bfd) -> tdata.elf_obj_data)
@@ -103,7 +103,7 @@ int in_exec_range(seginfo_t *info, size_t infosize, unsigned long long start, un
 
 // char *, size_t -> int
 // Open the given executable file, handle each executable section
-int handle_execable(char * infile, size_t depth, char * re){
+int handle_execable(char * infile, size_t depth, char ** re){
     bfd * bfdh;
     asection * section;
     enum bfd_architecture barch;
@@ -267,12 +267,14 @@ int main(int argc, char **argv){
     char * eval = NULL;
     char * aval = NULL;
     char * infile = NULL;
-    char * re = NULL;
+    char ** re = NULL;                  // allow multiple regexes
+    size_t re_idx = 0;                  // index of regex
     size_t hdrlen = 0;
     size_t depth = DEFAULT_DEPTH;
     unsigned long long vma = 0;
     char endianchar = 0;
     config_t cfg = {0};
+
 
     while((opt = getopt(argc, argv, "b:r:e:a:vhnl:d:s:")) != -1){
         switch(opt){
@@ -305,12 +307,27 @@ int main(int argc, char **argv){
                 aval = optarg;
                 break;
             case 's':
-                re = optarg;
+                if(!re){
+                    re = calloc(MAX_REGEX + 1, sizeof(char *));
+                    if(!re){
+                        perror("calloc re"); 
+                        exit(-1);
+                    }
+                }
+                if(re_idx >= MAX_REGEX){
+                    fprintf(stderr, "Too many regex'es specified\n"); 
+                    exit(-1);
+                }
+                re[re_idx++] = optarg;
                 break;
             default:
             case '?':
                 print_usage();
         }
+    }
+
+    if(re){
+        re[re_idx] = NULL;
     }
 
     // version

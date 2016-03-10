@@ -50,7 +50,6 @@ int reg_match(char * str, char * re){
     return reti;
 }
 
-
 // insn_t, int
 // Check if the given instruction is a valid instruction
 // and/or was decoded sucessfully
@@ -146,7 +145,7 @@ void print_gadget(insn_t * ins, int type, int isthumb){
  
     dec = ins->decoded_instrs;
     l = ins->instr_size;
-    opcode_str = calloc(1, l);
+    opcode_str = calloc(1, ins->instr_size * 2 + 1);
     if(!opcode_str){
         perror("calloc opcode_str"); 
         exit(-1);
@@ -227,16 +226,23 @@ void print_gadget_wc(insn_t * ins, int type, int isthumb){
 
 // insn_list ** -> void
 // Print all the instructions in the list with the given regex
-void print_gadgets_list(insn_list **ilist, char * re){
+void print_gadgets_list(insn_list **ilist, char ** re){
     insn_list * l = *ilist;
     int acc = 0;
+    char ** curs;
 
     if(re){
-        while(l){
-           acc |= !reg_match(l->instr->decoded_instrs, re); 
-           l = l->next;
+        curs = re;
+        while(*curs){
+            acc = 0;
+            l = *ilist;
+            while(l){
+                acc |= !reg_match(l->instr->decoded_instrs, *curs); 
+                l = l->next;
+            }
+            if(!acc) return;
+            curs++;
         }
-        if(!acc) return;
     }
 
     l = *ilist;
@@ -258,9 +264,10 @@ void print_gadgets_list(insn_list **ilist, char * re){
 
 // insn_t *, int, int
 // Print the path with the given output option
-void print_path(insn_t * path[], int pathlen, int output, char * re){
+void print_path(insn_t * path[], int pathlen, int output, char ** re){
     int i = 0;
     int acc = 0;
+    char ** curs;
 
 
     if(pathlen == 0){
@@ -268,10 +275,15 @@ void print_path(insn_t * path[], int pathlen, int output, char * re){
     }
 
     if(re){
-        for(i = pathlen; i >= 0; i--){
-            acc |= !reg_match(path[i]->decoded_instrs, re);
+        curs = re;
+        while(*curs){
+            acc = 0;
+            for(i = pathlen; i >= 0; i--){
+                acc |= !reg_match(path[i]->decoded_instrs, *curs);
+            }
+            if(!acc) return;
+            curs++;
         }
-        if(!acc) return;
     }
 
     for(i = pathlen; i >= 0; i--){

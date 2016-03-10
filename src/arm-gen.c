@@ -27,7 +27,7 @@
 
 // thumb_node_t *, insn_t *, size_t, int
 // Recursively print the gadgets in the Thumb binary tree
-void r_print_gadgets_bt(thumb_node_t * n, insn_t * path[], size_t depth, int pathlen, char * re){
+void r_print_gadgets_bt(thumb_node_t * n, insn_t * path[], size_t depth, int pathlen, char **re){
     thumb_node_t * tmp = NULL;   
 
     if(n == NULL) return;
@@ -55,7 +55,7 @@ void r_print_gadgets_bt(thumb_node_t * n, insn_t * path[], size_t depth, int pat
 
 // thumb_node_t *, size_t
 // Print the gadgets in the Thumb binary tree
-void print_gadgets_bt(thumb_node_t * n, size_t depth, char * re){
+void print_gadgets_bt(thumb_node_t * n, size_t depth, char **re){
     insn_t * path[MAX_GADGET_LEN] = {0};
     r_print_gadgets_bt(n, path, depth, 0, re);
 }
@@ -177,7 +177,7 @@ void get_children_thumb(thumb_node_t * currnode, char * begptr, char * rawbuf, u
 
 // unsigned int, char *, size_t, int, int, size_t
 // Generate all the ARM gadgets
-gadget_list * generate_arm(unsigned long long vma, char * rawbuf, size_t size, int bits, int endian, size_t depth, char * re){
+gadget_list * generate_arm(unsigned long long vma, char * rawbuf, size_t size, int bits, int endian, size_t depth, char **re){
     insn_t * it;
     unsigned int i = 0, j = 0;
     uint32_t * armbuf = (uint32_t *) rawbuf;

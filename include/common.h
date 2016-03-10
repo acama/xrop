@@ -26,7 +26,7 @@
 
 // insn_list ** -> void
 // Print all the instructions in the list
-void print_gadgets_list(insn_list **ilist, char * re);
+void print_gadgets_list(insn_list **ilist, char ** re);
 
 // insn_t, int
 // Check if the given instruction is a valid instruction
@@ -43,7 +43,7 @@ void print_gadget(insn_t * ins, int type, int isthumb);
 
 // insn_t *, int, int
 // Print the path with the given output option
-void print_path(insn_t * path[], int pathlen, int output, char * re);
+void print_path(insn_t * path[], int pathlen, int output, char ** re);
 
 // char *, char * -> int
 // perform regex matching on given string with pattern
