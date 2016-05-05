@@ -72,19 +72,51 @@ int is_arm_end(uint32_t * rawbuf, int bits, int endian){
     ins = rawbuf[0];
 
     if(!endian){ // Little Endian
-        acc = (((ins >> 25) & 7) == 4) 
-            && ((ins >> 20) & 1) 
-            && (ins & 0x8000); // Load Multiple instructions that manipulate PC
+        if(bits == 64){
+            acc |= (ins == 0xd65f03c0);  // ret
 
-        acc |= (((ins >> 8) & 0x1ffff) == 0x12fff); // Branch and Exchange instructions
-        acc |= (((ins >> 24) & 0xff) == 0xef); // SVC
+            acc |= BITS(ins, 31, 25) == 107 && // blr
+                    BITS(ins, 24, 23) == 0 &&
+                    BITS(ins, 22, 21) == 1 &&
+                    BITS(ins, 15, 10) == 0 &&
+                    BITS(ins, 4, 0) == 0;
+
+            acc |= BITS(ins, 31, 25) == 107 && // br
+                    BITS(ins, 24, 23) == 0 &&
+                    BITS(ins, 22, 21) == 0 &&
+                    BITS(ins, 15, 10) == 0 &&
+                    BITS(ins, 4, 0) == 0;
+        }else{
+            acc = (((ins >> 25) & 7) == 4) 
+                && ((ins >> 20) & 1) 
+                && (ins & 0x8000); // Load Multiple instructions that manipulate PC
+
+            acc |= (((ins >> 8) & 0x1ffff) == 0x12fff); // Branch and Exchange instructions
+            acc |= (((ins >> 24) & 0xff) == 0xef); // SVC
+        }
     }else{ // TODO: Big Endian
-        acc = (((ins >> 25) & 7) == 4) 
-            && ((ins >> 20) & 1) 
-            && (ins & 0x8000); // Load Multiple instructions that manipulate PC
+        if(bits == 64){
+            acc |= (ins == 0xc0035fd6); // ret
 
-        acc |= (((ins >> 8) & 0x1ffff) == 0x12fff); // Branch and Exchange instructions
-        acc |= (((ins >> 24) & 0xff) == 0xef); // SVC
+            acc |= BITS(ins, 31, 25) == 107 && // blr
+                    BITS(ins, 24, 23) == 0 &&
+                    BITS(ins, 22, 21) == 1 &&
+                    BITS(ins, 15, 10) == 0 &&
+                    BITS(ins, 4, 0) == 0;
+
+            acc |= BITS(ins, 31, 25) == 107 && // br
+                    BITS(ins, 24, 23) == 0 &&
+                    BITS(ins, 22, 21) == 0 &&
+                    BITS(ins, 15, 10) == 0 &&
+                    BITS(ins, 4, 0) == 0;
+        }else{
+            acc = (((ins >> 25) & 7) == 4) 
+                && ((ins >> 20) & 1) 
+                && (ins & 0x8000); // Load Multiple instructions that manipulate PC
+
+            acc |= (((ins >> 8) & 0x1ffff) == 0x12fff); // Branch and Exchange instructions
+            acc |= (((ins >> 24) & 0xff) == 0xef); // SVC
+        }
     }
     return acc;
 }
@@ -181,52 +213,80 @@ gadget_list * generate_arm(unsigned long long vma, char * rawbuf, size_t size, i
     insn_t * it;
     unsigned int i = 0, j = 0;
     uint32_t * armbuf = (uint32_t *) rawbuf;
+    char * arm64buf = rawbuf;
     uint16_t * thmbuf = (uint16_t *) rawbuf;
     size_t nsize_arm = size / 4;
     size_t nsize_thm = size / 2;
+    size_t nsize_arm64 = size;
     thumb_node_t * troot = NULL;
 
-    // From the ARM 32 bit endings
-    for(i = 0; i < nsize_arm; i++){
-        if(is_arm_end(&armbuf[i], bits, endian)){
-            insn_list * gadget = NULL;
-            it = disassemble_one(vma + i * 4, (char *)&armbuf[i], ARM_INSTR_SIZE, ARCH_arm, bits, endian);
-            if(!is_valid_instr(it, ARCH_arm)) continue;
-            prepend_instr(it, &gadget);
-            for(j = 1; j < depth; j++){
-                char * iptr = (char *)&armbuf[i] - (j * 4);
-                unsigned int nvma = (vma + i * 4) - (j * 4);
-                if(nvma < vma) break;
-                it = disassemble_one(nvma, iptr, ARM_INSTR_SIZE, ARCH_arm, bits, endian);
-                if(!is_valid_instr(it, ARCH_arm) 
-                        || is_arm_end((uint32_t *)iptr, bits, endian) 
-                        || is_branch(it, ARCH_arm)) break;
+    // From the ARM 32 bit or 64 bit endings
+    if(bits == 64){
+        for(i = 0; i < nsize_arm64; i++){
+            if(is_arm_end((uint32_t *)&arm64buf[i], bits, endian)){
+                insn_list * gadget = NULL;
+                it = disassemble_one(vma + i, (char *)&arm64buf[i], ARM_INSTR_SIZE, ARCH_arm, bits, endian);
+                if(!is_valid_instr(it, ARCH_arm)) continue;
                 prepend_instr(it, &gadget);
+                for(j = 1; j < depth; j++){
+                    char * iptr = (char *)&arm64buf[i] - (j * 4);
+                    if(iptr < arm64buf) break;
+                    unsigned int nvma = (vma + i * 4) - (j * 4);
+                    if(nvma < vma) break;
+                    it = disassemble_one(nvma, iptr, ARM_INSTR_SIZE, ARCH_arm, bits, endian);
+                    if(!is_valid_instr(it, ARCH_arm) 
+                            || is_arm_end((uint32_t *)iptr, bits, endian) 
+                            || is_branch(it, ARCH_arm)) break;
+                    prepend_instr(it, &gadget);
+                }
+                print_gadgets_list(&gadget, re);
+                free_all_instrs(&gadget);
             }
-            print_gadgets_list(&gadget, re);
-            free_all_instrs(&gadget);
+        }
+    }else{
+        for(i = 0; i < nsize_arm; i++){
+            if(is_arm_end(&armbuf[i], bits, endian)){
+                insn_list * gadget = NULL;
+                it = disassemble_one(vma + i * 4, (char *)&armbuf[i], ARM_INSTR_SIZE, ARCH_arm, bits, endian);
+                if(!is_valid_instr(it, ARCH_arm)) continue;
+                prepend_instr(it, &gadget);
+                for(j = 1; j < depth; j++){
+                    char * iptr = (char *)&armbuf[i] - (j * 4);
+                    unsigned int nvma = (vma + i * 4) - (j * 4);
+                    if(nvma < vma) break;
+                    it = disassemble_one(nvma, iptr, ARM_INSTR_SIZE, ARCH_arm, bits, endian);
+                    if(!is_valid_instr(it, ARCH_arm) 
+                            || is_arm_end((uint32_t *)iptr, bits, endian) 
+                            || is_branch(it, ARCH_arm)) break;
+                    prepend_instr(it, &gadget);
+                }
+                print_gadgets_list(&gadget, re);
+                free_all_instrs(&gadget);
+            }
         }
     }
 
     // From the Thumb 16 bit endings
-    for(i = 0; i < nsize_thm; i++){
-        if(is_thumb16_end(&thmbuf[i], bits, endian)){
-            troot = malloc(sizeof(thumb_node_t));
-            if(!troot){
-                perror("malloc");
-                exit(-1);
+    if(bits != 64){
+        for(i = 0; i < nsize_thm; i++){
+            if(is_thumb16_end(&thmbuf[i], bits, endian)){
+                troot = malloc(sizeof(thumb_node_t));
+                if(!troot){
+                    perror("malloc");
+                    exit(-1);
+                }
+                memset(troot, 0, sizeof(thumb_node_t));
+
+                it = disassemble_one(vma + i * 2, rawbuf + i * 2, nsize_thm - i * 2, ARCH_arm, 16, endian);
+                if(!is_valid_instr(it, ARCH_arm)) continue;
+                troot->insn = it;
+                get_children_thumb(troot, rawbuf, rawbuf + i * 2, vma, nsize_thm - i * 2, bits, depth, endian);
+
+                print_gadgets_bt(troot, depth, re);
+                //print_gadgets_trie(retrootn, depth);
             }
-            memset(troot, 0, sizeof(thumb_node_t));
-
-            it = disassemble_one(vma + i * 2, rawbuf + i * 2, nsize_thm - i * 2, ARCH_arm, 16, endian);
-            if(!is_valid_instr(it, ARCH_arm)) continue;
-            troot->insn = it;
-            get_children_thumb(troot, rawbuf, rawbuf + i * 2, vma, nsize_thm - i * 2, bits, depth, endian);
-
-            print_gadgets_bt(troot, depth, re);
-            //print_gadgets_trie(retrootn, depth);
-        }
-    } 
+        } 
+    }
  
     /* TODO: Implement this
     // From the Thumb 32 bit endings
