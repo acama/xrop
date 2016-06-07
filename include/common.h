@@ -24,6 +24,8 @@
 
 #include "xrop.h"
 
+#define BITS(insn, high, low) ((insn >> low) & ((1 << (high - low + 1)) - 1))
+
 // insn_list ** -> void
 // Print all the instructions in the list
 void print_gadgets_list(insn_list **ilist, char ** re);
