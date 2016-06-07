@@ -87,12 +87,35 @@ int is_arm_end(uint32_t * rawbuf, int bits, int endian){
                     BITS(ins, 15, 10) == 0 &&
                     BITS(ins, 4, 0) == 0;
         }else{
-            acc = (((ins >> 25) & 7) == 4) 
-                && ((ins >> 20) & 1) 
-                && (ins & 0x8000); // Load Multiple instructions that manipulate PC
+            acc |= BITS(ins, 27, 22) == 34 && // 100010
+                    BITS(ins, 20, 20) == 1 && // LDM/LDMIA/LDMFD
+                    BITS(ins, 15, 15) == 1;   // make sure r15(pc) is updated
 
-            acc |= (((ins >> 8) & 0x1ffff) == 0x12fff); // Branch and Exchange instructions
-            acc |= (((ins >> 24) & 0xff) == 0xef); // SVC
+            acc |= BITS(ins, 27, 22) == 32 && // 100000
+                    BITS(ins, 20, 20) == 1 && // LDMDA/LDMFA
+                    BITS(ins, 15, 15) == 1;   // make sure r15(pc) is updated
+
+            acc |= BITS(ins, 27, 22) == 36 && // 100000
+                    BITS(ins, 20, 20) == 1 && // LDMDB/LDMEA
+                    BITS(ins, 15, 15) == 1;   // make sure r15(pc) is updated
+
+            acc |= BITS(ins, 27, 22) == 38 && // 100000
+                    BITS(ins, 20, 20) == 1 && // LDMIB/LDMED
+                    BITS(ins, 15, 15) == 1;   // make sure r15(pc) is updated
+
+            acc |= BITS(ins, 27, 16) == 2237 && // 100010111101 POP
+                    BITS(ins, 15, 15) == 1;   // make sure r15(pc) is updated
+
+            acc |= BITS(ins, 27, 4) == 1245169; // bx <reg> 1245169
+
+            acc |= BITS(ins, 27, 4) == 1245171; // blx <reg> 1245169
+
+            /*acc = (((ins >> 25) & 7) == 4) */
+                /*&& ((ins >> 20) & 1) */
+                /*&& (ins & 0x8000); // Load Multiple instructions that manipulate PC*/
+
+            /*acc |= (((ins >> 8) & 0x1ffff) == 0x12fff); // Branch and Exchange instructions*/
+            /*acc |= (((ins >> 24) & 0xff) == 0xef); // SVC*/
         }
     }else{ // TODO: Big Endian
         if(bits == 64){
