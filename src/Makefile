@@ -1,7 +1,7 @@
 CC=gcc
 APP=../xrop
 LDFLAGS= -Llibxdisasm/build/lib/ -lxdisasm -ldl
-BINUTILS = libxdisasm/src/binutils-2.25
+BINUTILS = libxdisasm/src/binutils
 BFD = $(BINUTILS)/bfd/
 CFLAGS := -I$(BFD) -I$(BINUTILS)/include -O3 -Wall -Werror -Wl,-R,'$$ORIGIN/lib/'
 
