@@ -72,6 +72,8 @@ int is_valid_instr(insn_t * i, int arch){
         return (c != '0') && (c != '.');
     }else if(arch == ARCH_powerpc){
         return (c != '.');
+    }else if(arch == ARCH_riscv){
+        return 1;
     }
 
     return 0;
@@ -125,6 +127,14 @@ int is_branch(insn_t * i, int arch){
 
     if(arch == ARCH_x86){
         if(strstr(i->decoded_instrs, "jmp"))
+            return 1;
+    }
+
+    if(arch == ARCH_riscv){
+        if(strstr(i->decoded_instrs, "j\t"))
+            return 1;
+        
+        if(strstr(i->decoded_instrs, "jal\t"))
             return 1;
     }
 
