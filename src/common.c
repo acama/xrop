@@ -178,7 +178,7 @@ void print_gadget(insn_t * ins, int type, int isthumb){
         ptr += 2;
     }
 
-    printf("\e[2m%-32s\e[m", opcode_str);
+    printf("\e[2m%-26s\e[m", opcode_str);
 
     // remove uninteresting comments inserted by disassembler
     if((ptr = strstr(dec, "; <U"))){  // "; <UNPREDICTABLE>"
