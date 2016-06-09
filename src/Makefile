@@ -15,6 +15,7 @@ makelib:
 
 xropbin: main.o xrop.o x86-gen.o common.o arm-gen.o mips-gen.o ppc-gen.o riscv-gen.o
 	$(CC) $(CFLAGS) xrop.o main.o common.o x86-gen.o arm-gen.o mips-gen.o ppc-gen.o riscv-gen.o -o ${APP} $(LDFLAGS)
+	strip -s ${APP}
 
 clean:
 	rm -rf *.o ${APP}

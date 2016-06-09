@@ -142,6 +142,9 @@ int handle_execable(char * infile, size_t depth, char ** re){
         printf("Searching ROP gadgets for \"%s\" - \e[32mARM64 Executable\e[m...\n", infile);
         arch = ARCH_arm;
         bits = 64;
+    }else if(!strcmp(bfdh->xvec->name, "pei-arm-little")){ // workaround since binutils not 
+                                                           //handling this type of binary properly
+        arch = ARCH_arm;
     }else if(barch == bfd_arch_i386){ // x86
         arch = ARCH_x86;
         if(mach == bfd_mach_i386_i8086){
