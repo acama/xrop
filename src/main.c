@@ -47,7 +47,6 @@ void print_version(){
     printf("%s %s \n", XNAME, VERSION);
     exit(0);
 }
-
 // Print usage
 void print_usage(){
     printf("Usage: xrop [-r arch] [-b bits] [-e bytes] [-l endian] [-a relocaddr] [-s regex] [-v] [-h] inputfile\n");
@@ -174,8 +173,13 @@ int handle_execable(char * infile, size_t depth, char ** re){
         printf("Searching ROP gadgets for \"%s\" - \e[32mSH4 Executable\e[m...\n", infile);
         arch = ARCH_sh4;
         sdepth = SH4_DEFAULT_DEPTH;
+    }else if(barch == bfd_arch_sparc){ // SPARC
+        printf("Searching ROP gadgets for \"%s\" - \e[32mSPARC Executable\e[m...\n", infile);
+        arch = ARCH_sparc;
+        bits = mach; // special meaning for SPARC
+        sdepth = SPARC_DEFAULT_DEPTH;
     }else{
-        printf("%s: Unsupported architecture %s\n", XNAME, bfdh->xvec->name);
+        printf("%s: Unsupported architecture %s\n, %d, %d", XNAME, bfdh->xvec->name, barch, (int)mach);
         return -1;
     }
 

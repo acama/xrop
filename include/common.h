@@ -30,6 +30,10 @@
 // Print all the instructions in the list
 void print_gadgets_list(insn_list **ilist, char ** re);
 
+// insn_list ** -> void
+// Print all the instructions in the list with optional delay
+void print_gadgets_list_delay(insn_list **ilist, char ** re, int delay);
+
 // insn_t, int
 // Check if the given instruction is a valid instruction
 // and/or was decoded sucessfully

@@ -64,6 +64,7 @@ int is_valid_instr(insn_t * i, int arch){
     if(arch == ARCH_x86){
         return (c != '(') && (c != '.') 
                 && !strstr(i->decoded_instrs, "(bad)") 
+                && !strstr(i->decoded_instrs, "?")
                 && !strstr(i->decoded_instrs, "<intern");
     }else if(arch == ARCH_arm){ 
         return (c != '\t') && (c != '.') && !strstr(i->decoded_instrs, "illegal");
@@ -76,6 +77,8 @@ int is_valid_instr(insn_t * i, int arch){
         return 1;
     }else if(arch == ARCH_sh4){
         return (c != '.');
+    }else if(arch == ARCH_sparc){
+        return 1;
     }
 
     return 0;
@@ -94,12 +97,6 @@ int is_branch(insn_t * i, int arch){
 
         if(strstr(i->decoded_instrs, "bl"))
             return 1;
-
-        if(strstr(i->decoded_instrs, "bx"))
-            return 1;
-
-        if(strstr(i->decoded_instrs, "blx"))
-            return 1;
     }
 
     if(arch == ARCH_mips){
@@ -109,13 +106,7 @@ int is_branch(insn_t * i, int arch){
         if(strstr(i->decoded_instrs, "j\t"))
             return 1;
         
-        if(strstr(i->decoded_instrs, "jr"))
-            return 1;
-
         if(strstr(i->decoded_instrs, "jal"))
-            return 1;
-
-        if(strstr(i->decoded_instrs, "jalr"))
             return 1;
     }
     
@@ -145,6 +136,17 @@ int is_branch(insn_t * i, int arch){
             return 1;
         
         if(strstr(i->decoded_instrs, "bra\t"))
+            return 1;
+    }
+
+    if(arch == ARCH_sparc){
+        if(strstr(i->decoded_instrs, "be\t"))
+            return 1;
+        
+        if(strstr(i->decoded_instrs, "b\t"))
+            return 1;
+
+        if(strstr(i->decoded_instrs, "bne\t"))
             return 1;
     }
 
@@ -244,9 +246,10 @@ void print_gadget_wc(insn_t * ins, int type, int isthumb){
 
 }
 
+
 // insn_list ** -> void
 // Print all the instructions in the list with the given regex
-void print_gadgets_list(insn_list **ilist, char ** re){
+void print_gadgets_list_delay(insn_list **ilist, char ** re, int delay){
     insn_list * l = *ilist;
     int acc = 0;
     char ** curs;
@@ -274,12 +277,22 @@ void print_gadgets_list(insn_list **ilist, char ** re){
 
     l = l->next;
     while(l){
-        if(!l->next) print_gadget(l->instr, BEG_OUTPUT, NORM_INSTR);
-        else print_gadget(l->instr, MID_OUTPUT, NORM_INSTR);
+        if(delay && l->next && !l->next->next){
+            print_gadget(l->instr, BEG_OUTPUT, NORM_INSTR);
+        }else{
+            if(!l->next && !delay) print_gadget(l->instr, BEG_OUTPUT, NORM_INSTR);
+            else print_gadget(l->instr, MID_OUTPUT, NORM_INSTR);
+        }
         l = l->next;
     }
     
     printf("_______________________________________________________________\n\n");
+}
+
+// insn_list ** -> void
+// Print all the instructions in the list with the given regex
+void print_gadgets_list(insn_list **ilist, char ** re){
+    print_gadgets_list_delay(ilist, re, 0);
 }
 
 // insn_t *, int, int

@@ -27,6 +27,7 @@
 #include "../include/ppc-gen.h"
 #include "../include/riscv-gen.h"
 #include "../include/sh4-gen.h"
+#include "../include/sparc-gen.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
@@ -55,6 +56,9 @@ gadget_list * gadget_search(char * rawbuf, size_t size, config_t * cfg){
             break;
         case ARCH_sh4:
             l = generate_sh4(cfg->vma, rawbuf, size, cfg->bits, cfg->endian, cfg->depth, cfg->re);
+            break;
+        case ARCH_sparc:
+            l = generate_sparc(cfg->vma, rawbuf, size, cfg->bits, cfg->endian, cfg->depth, cfg->re);
             break;
     }
 
