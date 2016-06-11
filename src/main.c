@@ -165,11 +165,15 @@ int handle_execable(char * infile, size_t depth, char ** re){
         printf("Searching ROP gadgets for \"%s\" - \e[32mPowerPC Executable\e[m...\n", infile);
         arch = ARCH_powerpc;
         sdepth = PPC_DEFAULT_DEPTH;
-    }else if(barch == bfd_arch_riscv){ // PPC
+    }else if(barch == bfd_arch_riscv){ // RISCV
         printf("Searching ROP gadgets for \"%s\" - \e[32mRISCV Executable\e[m...\n", infile);
         arch = ARCH_riscv;
         bits = 64; 
         sdepth = RISCV_DEFAULT_DEPTH;
+    }else if(barch == bfd_arch_sh){ // SH4
+        printf("Searching ROP gadgets for \"%s\" - \e[32mSH4 Executable\e[m...\n", infile);
+        arch = ARCH_sh4;
+        sdepth = SH4_DEFAULT_DEPTH;
     }else{
         printf("%s: Unsupported architecture %s\n", XNAME, bfdh->xvec->name);
         return -1;

@@ -29,6 +29,7 @@
 #define DEFAULT_DEPTH 4
 #define MIPS_DEFAULT_DEPTH 8
 #define RISCV_DEFAULT_DEPTH 8
+#define SH4_DEFAULT_DEPTH 8
 #define PPC_DEFAULT_DEPTH 8
 #define MAX_DEPTH 20
 #define X86MAX_INSTR_SIZE 15
@@ -37,6 +38,7 @@
 #define MIPS_INSTR_SIZE 4
 #define RISCV_INSTR_SIZE 4
 #define PPC_INSTR_SIZE 4
+#define SH4_INSTR_SIZE 2
 
 // Instruction output function macros
 #define BEG_OUTPUT 2

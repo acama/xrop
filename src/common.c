@@ -74,6 +74,8 @@ int is_valid_instr(insn_t * i, int arch){
         return (c != '.');
     }else if(arch == ARCH_riscv){
         return 1;
+    }else if(arch == ARCH_sh4){
+        return (c != '.');
     }
 
     return 0;
@@ -135,6 +137,14 @@ int is_branch(insn_t * i, int arch){
             return 1;
         
         if(strstr(i->decoded_instrs, "jal\t"))
+            return 1;
+    }
+
+    if(arch == ARCH_sh4){
+        if(strstr(i->decoded_instrs, "bsr\t"))
+            return 1;
+        
+        if(strstr(i->decoded_instrs, "bra\t"))
             return 1;
     }
 
