@@ -59,6 +59,10 @@ gadget_list * generate_mips(unsigned long long vma, char * rawbuf, size_t size, 
             it = disassemble_one(vma + i * 4, (char *)&mipsbuf[i], MIPS_INSTR_SIZE, ARCH_mips, bits, endian);
             if(!is_valid_instr(it, ARCH_mips)) continue;
             prepend_instr(it, &gadget);
+            // Get the branch delay slot.
+            it = disassemble_one(vma + (i + 1) * 4, (char *)&mipsbuf[i + 1], MIPS_INSTR_SIZE, ARCH_mips, bits, endian);
+            if(!is_valid_instr(it, ARCH_mips)) continue;
+            append_instr(it, &gadget);
             for(j = 1; j < depth; j++){
                 char * iptr = (char *)&mipsbuf[i] - (j * 4);
                 unsigned int nvma = (vma + i * 4) - (j * 4);
