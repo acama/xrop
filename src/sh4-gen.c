@@ -35,7 +35,8 @@ int is_sh4_end(uint16_t * rawbuf, int bits, int endian){
     if(!rawbuf) return 1;
 
     ins = rawbuf[0];
-    ins = ins >> 8 | ins << 8; // reverse since little endian
+    if(bits)
+        ins = ins >> 8 | ins << 8; // reverse since little endian
 
     acc = (ins == 0xb); //rts
     acc |= (BITS(ins, 7, 0) == 0xb  && BITS(ins, 15, 12) == 4); //jsr @rn
@@ -57,9 +58,11 @@ gadget_list * generate_sh4(unsigned long long vma, char * rawbuf, size_t size, i
     for(i = 0; i < nsize_sh4; i++){
         if(is_sh4_end(&sh4buf[i], bits, endian)){
             insn_list * gadget = NULL;
-            it = disassemble_one(vma + i * 2, (char *)&sh4buf[i], SH4_INSTR_SIZE, ARCH_sh4, bits, endian);
+            it = disassemble_one(vma + i * SH4_INSTR_SIZE, (char *)&sh4buf[i], SH4_INSTR_SIZE, ARCH_sh4, bits, endian);
             if(!is_valid_instr(it, ARCH_sh4)) continue;
             prepend_instr(it, &gadget);
+            it = disassemble_one(vma + i * SH4_INSTR_SIZE + SH4_INSTR_SIZE, (char *)&sh4buf[i + 1], SH4_INSTR_SIZE, ARCH_sh4, bits, endian);
+            append_instr(it, &gadget);
             for(j = 1; j < depth; j++){
                 char * iptr = (char *)&sh4buf[i] - (j * 2);
                 unsigned int nvma = (vma + i * 2) - (j * 2);
@@ -70,7 +73,7 @@ gadget_list * generate_sh4(unsigned long long vma, char * rawbuf, size_t size, i
                         || is_branch(it, ARCH_sh4)) break;
                 prepend_instr(it, &gadget);
             }
-            print_gadgets_list(&gadget, re);
+            print_gadgets_list_delay(&gadget, re, 1);
             free_all_instrs(&gadget);
         }
     }

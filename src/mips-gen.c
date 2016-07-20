@@ -51,17 +51,19 @@ gadget_list * generate_mips(unsigned long long vma, char * rawbuf, size_t size, 
     insn_t * it;
     unsigned int i = 0, j = 0;
     uint32_t * mipsbuf = (uint32_t *) rawbuf;
-    size_t nsize_mips = size / 4;
+    size_t nsize_mips = size / MIPS_INSTR_SIZE;
 
     for(i = 0; i < nsize_mips; i++){
         if(is_mips_end(&mipsbuf[i], bits, endian)){
             insn_list * gadget = NULL;
-            it = disassemble_one(vma + i * 4, (char *)&mipsbuf[i], MIPS_INSTR_SIZE, ARCH_mips, bits, endian);
+            it = disassemble_one(vma + i * MIPS_INSTR_SIZE, (char *)&mipsbuf[i], MIPS_INSTR_SIZE, ARCH_mips, bits, endian);
             if(!is_valid_instr(it, ARCH_mips)) continue;
             prepend_instr(it, &gadget);
+            it = disassemble_one(vma + i * MIPS_INSTR_SIZE + MIPS_INSTR_SIZE, (char *)&mipsbuf[i + 1], MIPS_INSTR_SIZE, ARCH_mips, bits, endian);
+            append_instr(it, &gadget);
             for(j = 1; j < depth; j++){
-                char * iptr = (char *)&mipsbuf[i] - (j * 4);
-                unsigned int nvma = (vma + i * 4) - (j * 4);
+                char * iptr = (char *)&mipsbuf[i] - (j * MIPS_INSTR_SIZE);
+                unsigned int nvma = (vma + i * MIPS_INSTR_SIZE) - (j * MIPS_INSTR_SIZE);
                 if(nvma < vma) break;
                 it = disassemble_one(nvma, iptr, MIPS_INSTR_SIZE, ARCH_mips, bits, endian);
                 if(!is_valid_instr(it, ARCH_mips) 
@@ -69,7 +71,7 @@ gadget_list * generate_mips(unsigned long long vma, char * rawbuf, size_t size, 
                         || is_branch(it, ARCH_mips)) break;
                 prepend_instr(it, &gadget);
             }
-            print_gadgets_list(&gadget, re);
+            print_gadgets_list_delay(&gadget, re, 1);
             free_all_instrs(&gadget);
         }
     }

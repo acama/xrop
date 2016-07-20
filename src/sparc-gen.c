@@ -25,16 +25,6 @@
 #include <stdio.h>
 #include <stdint.h>
 
-// insn_t *
-int is_delayed(insn_t * i){
-	if(strstr(i->decoded_instrs, "retl "))
-		return 1;
-
-	if(strstr(i->decoded_instrs, "ret "))
-		return 1;
-
-    return 0;
-}
 
 // unint32_t *, int, int -> int
 // Is the buffer pointing to a SPARC gadget end sequence
@@ -61,7 +51,6 @@ int is_sparc_end(uint32_t * rawbuf, int bits, int endian){
 // Generate all the SPARC gadgets
 gadget_list * generate_sparc(unsigned long long vma, char * rawbuf, size_t size, int bits, int endian, size_t depth, char **re){
     insn_t * it;
-    insn_t * delayed_it = NULL;
     unsigned int i = 0, j = 0;
     uint32_t * sparcbuf = (uint32_t *) rawbuf;
     size_t nsize_sparc = size / 4;
@@ -72,9 +61,8 @@ gadget_list * generate_sparc(unsigned long long vma, char * rawbuf, size_t size,
             it = disassemble_one(vma + i * 4, (char *)&sparcbuf[i], SPARC_INSTR_SIZE, ARCH_sparc, bits, endian);
             if(!is_valid_instr(it, ARCH_sparc)) continue;
             prepend_instr(it, &gadget);
-            if(is_delayed(it)){
-                delayed_it = disassemble_one(vma + (i + 1) * 4, (char *)&sparcbuf[i + 1], SPARC_INSTR_SIZE, ARCH_sparc, bits, endian);
-            }
+            it = disassemble_one(vma + i * SPARC_INSTR_SIZE + SPARC_INSTR_SIZE, (char *)&sparcbuf[i + 1], SPARC_INSTR_SIZE, ARCH_sparc, bits, endian);
+            append_instr(it, &gadget);
             for(j = 1; j < depth; j++){
                 char * iptr = (char *)&sparcbuf[i] - (j * 4);
                 unsigned int nvma = (vma + i * 4) - (j * 4);
@@ -85,9 +73,7 @@ gadget_list * generate_sparc(unsigned long long vma, char * rawbuf, size_t size,
                         || is_branch(it, ARCH_sparc)) break;
                 prepend_instr(it, &gadget);
             }
-            if(delayed_it)
-                append_instr(delayed_it, &gadget);
-            print_gadgets_list_delay(&gadget, re, delayed_it ? 1 : 0);
+            print_gadgets_list_delay(&gadget, re, 1);
             free_all_instrs(&gadget);
         }
     }

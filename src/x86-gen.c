@@ -35,6 +35,7 @@ int is_x86_end(char * rawbuf, int bits){
     acc = ((unsigned short *)rawbuf)[0] == (unsigned short)0x80cd // int 80h 
             || ((unsigned short *)rawbuf)[0] == (unsigned short)0x340f // sysenter
             || rawbuf[0] == (char) 0xc3 // ret
+            || rawbuf[0] == (char) 0xc2 // retn
             || (((((unsigned short *)rawbuf)[0] & 0xF0FF) == 0xD0FF) && 
                     ((((unsigned short *)rawbuf)[0] & 0xFFFF) <= 0xD7FF)) // call reg
             || (((((unsigned short *)rawbuf)[0] & 0xF0FF) == 0x10FF) 
