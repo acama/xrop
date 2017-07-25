@@ -36,6 +36,7 @@
 
 #include "libxdisasm/include/xdisasm.h"
 #include "../include/xrop.h"
+#include "../include/color_print.h"
 
 #define VERSION "1.1"
 #define XNAME "xrop"
@@ -135,10 +136,14 @@ int handle_execable(char * infile, size_t depth, char ** re){
             endian = 1;
 
     if(barch == bfd_arch_arm){ // ARM
-        printf("Searching ROP gadgets for \"%s\" - \e[32mARM Executable\e[m...\n", infile);
+        printf("Searching ROP gadgets for \"%s\" - ",infile);
+        green_printf("ARM Executable");
+        printf("...\n");
         arch = ARCH_arm;
     }else if(barch == bfd_arch_aarch64){
-        printf("Searching ROP gadgets for \"%s\" - \e[32mARM64 Executable\e[m...\n", infile);
+        printf("Searching ROP gadgets for \"%s\" - ",infile);
+        green_printf("ARM64 Executable");
+        printf("...\n");
         arch = ARCH_arm;
         bits = 64;
     }else if(!strcmp(bfdh->xvec->name, "pei-arm-little")){ // workaround since binutils not 
@@ -150,31 +155,45 @@ int handle_execable(char * infile, size_t depth, char ** re){
             printf("Searching ROP gadgets for 16-bit is not supported\n");
             exit(-1);
         }else if(mach == bfd_mach_i386_i386){
-            printf("Searching ROP gadgets for \"%s\" - \e[32mx86 Executable\e[m...\n", infile);
+            printf("Searching ROP gadgets for \"%s\" - ",infile);
+            green_printf("x86 Executable");
+            printf("...\n");
             bits = 32;
         }else{
-            printf("Searching ROP gadgets for \"%s\" - \e[32mx86_64 Executable\e[m...\n", infile);
+            printf("Searching ROP gadgets for \"%s\" - ",infile);
+            green_printf("x86_64 Executable");
+            printf("...\n");
             bits = 64;
         }
     }else if(barch == bfd_arch_mips){ // MIPS 
-        printf("Searching ROP gadgets for \"%s\" - \e[32mMIPS Executable\e[m...\n", infile);
+        printf("Searching ROP gadgets for \"%s\" - ",infile);
+        green_printf("MIPS Executable");
+        printf("...\n");
         arch = ARCH_mips;
         sdepth = MIPS_DEFAULT_DEPTH;
     }else if(barch == bfd_arch_powerpc){ // PPC
-        printf("Searching ROP gadgets for \"%s\" - \e[32mPowerPC Executable\e[m...\n", infile);
+        printf("Searching ROP gadgets for \"%s\" - ",infile);
+        green_printf("PowerPC Executable");
+        printf("...\n");
         arch = ARCH_powerpc;
         sdepth = PPC_DEFAULT_DEPTH;
     }else if(barch == bfd_arch_riscv){ // RISCV
-        printf("Searching ROP gadgets for \"%s\" - \e[32mRISCV Executable\e[m...\n", infile);
+        printf("Searching ROP gadgets for \"%s\" - ",infile);
+        green_printf("RISCV Executable");
+        printf("...\n");
         arch = ARCH_riscv;
         bits = 64; 
         sdepth = RISCV_DEFAULT_DEPTH;
     }else if(barch == bfd_arch_sh){ // SH4
-        printf("Searching ROP gadgets for \"%s\" - \e[32mSH4 Executable\e[m...\n", infile);
+        printf("Searching ROP gadgets for \"%s\" - ",infile);
+        green_printf("SH4 Executable");
+        printf("...\n");
         arch = ARCH_sh4;
         sdepth = SH4_DEFAULT_DEPTH;
     }else if(barch == bfd_arch_sparc){ // SPARC
-        printf("Searching ROP gadgets for \"%s\" - \e[32mSPARC Executable\e[m...\n", infile);
+        printf("Searching ROP gadgets for \"%s\" - ",infile);
+        green_printf("SPARC Executable", infile);
+        printf("...\n");
         arch = ARCH_sparc;
         bits = mach; // special meaning for SPARC
         sdepth = SPARC_DEFAULT_DEPTH;
@@ -207,7 +226,7 @@ int handle_execable(char * infile, size_t depth, char ** re){
             // means this is an ELF so we only care about segments
             if(in_exec_range(exec_segments, num_segments, cur_vma, cur_vma_end)){
                 printf("\n");
-                printf("\e[32m -> [ %s ]\e[m\n", bfd_section_name(bfdh, section));
+                green_printf(" -> [ %s ]\n", bfd_section_name(bfdh, section));
 
                 cfg.arch = arch;
                 cfg.bits = bits;
@@ -220,7 +239,7 @@ int handle_execable(char * infile, size_t depth, char ** re){
         }else if((flags & SEC_LOAD) && (flags & SEC_CODE)){
             // some other file format
             printf("\n");
-            printf("\e[32m -> [ %s ]\e[m\n", bfd_section_name(bfdh, section));
+            green_printf(" -> [ %s ]\n", bfd_section_name(bfdh, section));
 
             cfg.arch = arch;
             cfg.bits = bits;
@@ -326,6 +345,10 @@ int main(int argc, char **argv){
             case 'a':
                 aval = optarg;
                 break;
+            case 'n':
+                xrop_no_color_g=1;
+                xdisasm_no_color_g=1;
+                break;
             case 's':
                 if(!re){
                     re = calloc(MAX_REGEX + 1, sizeof(char *));
@@ -369,7 +392,7 @@ int main(int argc, char **argv){
 
     // load address
     if(aval){
-        vma = strtol(aval, NULL, 0);
+        vma = strtoull(aval, NULL, 0);
         if(vma == LONG_MAX || vma == LONG_MIN || vma == 0){
             perror("strtol");
             exit(-1);
