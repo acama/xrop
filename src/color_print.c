@@ -34,7 +34,7 @@ static char *foreground_colors[END_COLORS]={
 
 void __color_printf(enum colors colorcode, const char* format, ...)
 {
-    int print_colors=(!xrop_no_color_g && (colorcode < sizeof(foreground_colors)));
+    int print_colors=(!xrop_no_color_g && (colorcode < sizeof(foreground_colors)/sizeof(char *)));
     if(print_colors)
     {
         printf("%s",foreground_colors[colorcode]);
