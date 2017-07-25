@@ -21,7 +21,6 @@ enum colors
     Cyan,
     BrightWhite,
     White,
-    NoColor,
     LessBright,
     END_COLORS
 };

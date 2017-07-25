@@ -28,7 +28,7 @@ static char *foreground_colors[END_COLORS]={
     "\e[36m",   //Cyan
     "\e[37;1m", //Bright White
     "\e[37m",   //White
-    "\e[2m"
+    "\e[2m"     //Dim
 };
 
 
