@@ -20,7 +20,6 @@
 */
 
 #include "../include/xrop.h"
-#include "../include/color_print.h"
 #include <stdio.h>
 #include <string.h>
 #include <regex.h>
@@ -157,7 +156,7 @@ int is_branch(insn_t * i, int arch){
 
 // insn_t * -> void
 // Print a gadget in a formatted way (with colors)
-static void print_gadget(insn_t * ins, int type, int isthumb){
+void print_gadget(insn_t * ins, int type, int isthumb){
     char * dec = NULL, * ptr = NULL;
     size_t i, l;
     char * opcode_str = NULL;
@@ -176,14 +175,14 @@ static void print_gadget(insn_t * ins, int type, int isthumb){
 
     if(type == END_OUTPUT || type == SPECIAL_OUTPUT){
         if(isthumb)
-            br_blue_printf("> 1 + %-16p", (void *)ins->vma);
+            printf("\e[34;1m> 1 + %-12p\e[m", (void *)ins->vma);
         else 
-            br_blue_printf("> %-20p", (void *)ins->vma);
+            printf("\e[34;1m> %-16p\e[m", (void *)ins->vma);
     }else{
         if(isthumb)
-            blue_printf(" + %-18p", (void *)ins->vma);
+            printf("\e[34m1 + %-14p\e[m", (void *)ins->vma);
         else 
-            blue_printf("%-22p", (void *)ins->vma);
+            printf("\e[34m%-18p\e[m", (void *)ins->vma);
     }
 
     for(i = 0; i < l; i++){
@@ -191,7 +190,7 @@ static void print_gadget(insn_t * ins, int type, int isthumb){
         ptr += 2;
     }
 
-    dim_printf("%-26s", opcode_str);
+    printf("\e[2m%-26s\e[m", opcode_str);
 
     // remove uninteresting comments inserted by disassembler
     if((ptr = strstr(dec, "; <U"))){  // "; <UNPREDICTABLE>"
@@ -202,7 +201,7 @@ static void print_gadget(insn_t * ins, int type, int isthumb){
     }
     
     if(type == BEG_OUTPUT || type == SPECIAL_OUTPUT){
-        red_printf("%s\n", ins->decoded_instrs);
+        printf("\e[31m%s\n\e[m", ins->decoded_instrs);
     }else{
         printf("%s\n", ins->decoded_instrs);
     }
