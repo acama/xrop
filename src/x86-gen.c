@@ -100,10 +100,10 @@ void get_children_x86(x86_node_t * currnode, char * begptr, char * rawbuf, unsig
         rvma = it->vma - i;
         if(nrawbuf < begptr) break;
         if(rvma < lowervma) break;
-        if(is_x86_stop(nrawbuf, bits)) break;
+        if(is_x86_stop(nrawbuf, bits)) continue;
         
         curr = disassemble_one(rvma, nrawbuf, bufsize + i, ARCH_x86, bits, 0);
-        if(is_branch(curr, ARCH_x86)) break;
+        if(is_branch(curr, ARCH_x86)) continue;
         if(is_valid_instr(curr, ARCH_x86) && (curr->instr_size == i)){
             x86_node_t * tmpn = malloc(sizeof(x86_node_t));
             if(!tmpn){
