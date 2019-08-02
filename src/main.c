@@ -50,7 +50,7 @@ void print_version(){
 }
 // Print usage
 void print_usage(){
-    printf("Usage: xrop [-r arch] [-b bits] [-e bytes] [-l endian] [-a relocaddr] [-s regex] [-v] [-h] inputfile\n");
+    printf("Usage: xrop [-r arch] [-b bits] [-e bytes] [-l endian] [-a relocaddr] [-d depth] [-s regex] [-v] [-h] inputfile\n");
     printf("\t -b (16 | 32 | 64) sets the processor mode\n");
     printf("\t -r (arm | mips | powerpc | x86) raw binary file of given architecture\n");
     printf("\t -v displays the version number\n");
@@ -58,6 +58,7 @@ void print_usage(){
     printf("\t -e skips <bytes> of header\n");
     printf("\t -a rellocate at given address\n");
     printf("\t -n disable colors in the output\n");
+    printf("\t -d depth of search\n");
     printf("\t -s filter gadgets with <regex>\n");
     printf("\t -h prints this menu\n");
     exit(0);
