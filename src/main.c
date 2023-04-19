@@ -29,7 +29,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <limits.h>
-#include <malloc.h>
+//#include <malloc.h>
 #include "elf/external.h"
 #include "elf/internal.h"
 #include "elf-bfd.h"
@@ -69,7 +69,7 @@ void handle_section(bfd * bfdh, asection * section, config_t * cfg){
     bfd_size_type size;
     char * rawbytes;
 
-    size = bfd_section_size(bfdh, section);
+    size = bfd_section_size(section);
     rawbytes = (char *) malloc(size);
 
     if(!rawbytes){
@@ -82,7 +82,7 @@ void handle_section(bfd * bfdh, asection * section, config_t * cfg){
         exit(-1);
     }
    
-    cfg->vma = bfd_section_vma(bfdh, section);
+    cfg->vma = bfd_section_vma(section);
     gadget_search(rawbytes, size, cfg);
     free(rawbytes);
 }
@@ -218,15 +218,15 @@ int handle_execable(char * infile, size_t depth, char ** re){
     }
 
     for(section = bfdh->sections; section; section = section->next){
-        flagword flags = bfd_get_section_flags(bfdh, section);
-        unsigned long long cur_vma = bfd_section_vma(bfdh, section);
-        bfd_size_type cur_size = bfd_section_size(bfdh, section);
+        flagword flags = bfd_section_flags(section);
+        unsigned long long cur_vma = bfd_section_vma(section);
+        bfd_size_type cur_size = bfd_section_size(section);
         unsigned long long cur_vma_end = cur_vma + cur_size;
         if(p != NULL && num_segments != 0){
             // means this is an ELF so we only care about segments
             if(in_exec_range(exec_segments, num_segments, cur_vma, cur_vma_end)){
                 printf("\n");
-                green_printf(" -> [ %s ]\n", bfd_section_name(bfdh, section));
+                green_printf(" -> [ %s ]\n", bfd_section_name(section));
 
                 cfg.arch = arch;
                 cfg.bits = bits;
@@ -239,7 +239,7 @@ int handle_execable(char * infile, size_t depth, char ** re){
         }else if((flags & SEC_LOAD) && (flags & SEC_CODE)){
             // some other file format
             printf("\n");
-            green_printf(" -> [ %s ]\n", bfd_section_name(bfdh, section));
+            green_printf(" -> [ %s ]\n", bfd_section_name(section));
 
             cfg.arch = arch;
             cfg.bits = bits;
