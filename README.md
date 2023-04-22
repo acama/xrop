@@ -13,6 +13,7 @@ make
 
 Changelog
 ---------
+* v1.2 - macos (apple silicon) support.
 * v1.1 - call gadgets, jmp gadgets, printing instruction opcodes.
 
 Examples
