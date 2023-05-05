@@ -245,7 +245,7 @@ gadget_list * generate_arm(unsigned long long vma, char * rawbuf, size_t size, i
 
     // From the ARM 32 bit or 64 bit endings
     if(bits == 64){
-        for(i = 0; i < nsize_arm64; i++){
+        for(i = 0; i < nsize_arm64 - 3; i++){
             if(is_arm_end((uint32_t *)&arm64buf[i], bits, endian)){
                 insn_list * gadget = NULL;
                 it = disassemble_one(vma + i, (char *)&arm64buf[i], ARM_INSTR_SIZE, ARCH_arm, bits, endian);
@@ -254,7 +254,7 @@ gadget_list * generate_arm(unsigned long long vma, char * rawbuf, size_t size, i
                 for(j = 1; j < depth; j++){
                     char * iptr = (char *)&arm64buf[i] - (j * 4);
                     if(iptr < arm64buf) break;
-                    unsigned int nvma = (vma + i * 4) - (j * 4);
+                    unsigned int nvma = (vma + i) - (j * 4);
                     if(nvma < vma) break;
                     it = disassemble_one(nvma, iptr, ARM_INSTR_SIZE, ARCH_arm, bits, endian);
                     if(!is_valid_instr(it, ARCH_arm) 
