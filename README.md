@@ -5,10 +5,20 @@ xrop is a simple tool to generate ROP gadgets. It supports PE, ELF, Mach-O and p
 
 Build Instructions
 -------------------
+
+On macos there is a Homebrew tap available:
 ```
+brew tap acama/homebrew-xrop
+brew install xrop
+```
+
+On other systems, you need to build from source as of now:
+```
+git clone https://github.com/acama/xrop.git
 cd xrop
 git submodule update --init --recursive
 make
+sudo make install # will install in /opt/xrop
 ```
 
 Changelog
